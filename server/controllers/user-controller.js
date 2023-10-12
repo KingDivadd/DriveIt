@@ -56,7 +56,28 @@ const editPhone = asyncHandler(async(req, res) => {
 // Add driver to Profile -- Only available to vehicle assignee and Vehicle coordinator
 const addDriver = asyncHandler(async(req, res) => {
     const { driver_id } = req.body
-
+        // find user and ensure, his role is a driver.
+    const verifyDriver = await User.findOne({ _id: driver_id })
+    if (verifyDriver.role === "driver") {
+        const addDriver = await User.findByIdAndUpdate({ _id: req.info.id }, { driver: driver_id }, { new: true, runValidator: true })
+        res.status(200).json({ LoggedInUser: addDriver })
+    }
+    res.status(500).json({ msg: "Selected user isn't a driver." })
 })
 
-module.exports = { editName, editPic, editPhone, allUsers }
+// Tranfer Driver from on dept to another
+const transferDriver = asyncHandler(async(req, res) => {
+    const { driver_id, dept } = req.body
+    const verifyDriver = await User.findOne({ _id: driver_id })
+        // ensure that the person about to make the transfer is a vehicle coordinator
+    if (req.info.role === "vehicle_coordinator") {
+        if (verifyDriver.role === "driver") {
+            const transerDriver = await User.findByIdAndUpdate({ _id: driver_id }, { dept }, { new: true, runValidator: true })
+            res.status(200).json({ transferedDriver: transerDriver })
+        }
+        res.status(200).json({ msg: "Error, user is not a driver." })
+    }
+    res.status(500).json({ msg: "Not authorized to perform this opeartion" })
+})
+
+module.exports = { editName, editPic, editPhone, allUsers, addDriver, transferDriver }

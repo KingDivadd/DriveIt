@@ -44,12 +44,12 @@ const isLoggedIn = (req, res, next) => {
 app.get("/", (req, res) => {
     res.send(`<a href="/auth/google"> Authenticate with Google </a>`) // this will be a button in the front.
 })
-app.get("/protected", isLoggedIn, (req, res) => {
+app.get("/home", isLoggedIn, (req, res) => {
     console.log(req.user)
     res.send(`Hello ${req.user.displayName}`)
 })
 app.get('/auth/google', passport.authenticate('google', { scope: ["email", "profile"] }));
-app.get(`/google/callback`, passport.authenticate('google', { successRedirect: '/protected', failureRedirect: '/auth/failure' }))
+app.get(`/google/callback`, passport.authenticate('google', { successRedirect: '/home', failureRedirect: '/auth/failure' }))
 
 app.get(`/auth/failure`, (req, res) => {
     res.send("Something went wrong") // should be  a designed page on the frontend.
@@ -58,7 +58,8 @@ app.get(`/auth/failure`, (req, res) => {
 app.get('/logout', (req, res) => {
     // req.logout();
     req.session.destroy()
-    res.send('Goodbye')
+        // res.send('Goodbye')
+    res.send(`Goodbye \n <a href="/auth/google"> Login </a>`)
 })
 
 // Errors
@@ -67,7 +68,7 @@ app.use(notFoundMiddleWare)
 const start = async() => {
     const PORT = process.env.PORT
     try {
-        // await connectDB()
+        await connectDB()
         app.listen(PORT, console.log(`SERVER started and running on PORT ${PORT}`.cyan.bold))
     } catch (err) {
         console.log('something went wrong'.red.bold, err)

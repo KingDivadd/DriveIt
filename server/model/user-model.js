@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
     phone: { type: Number, required: true, trim: true },
     role: { type: String, required: true, enum: ['driver', 'vehicle_asignee', 'vehicle_coordinator', 'maintenance personnel'] },
     driver: { type: mongoose.Types.ObjectId, ref: "User" },
+    dept: { type: String, required: true, enum: ['SEET', 'SAAT', 'SOS', 'SEMS', 'SHIT', 'SO'] },
     pic: { type: String, trim: true, default: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1GL8Mz5XG-_9NZ77L0xQzDdiYIBqXgfOUM4pJUnKWww&s' }
 }, { timestamps: true })
 
