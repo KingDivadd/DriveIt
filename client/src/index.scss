@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Montserrat:wght@200;300;400;500;600;700;800&family=Poppins:wght@100;200;300;400;500;600;700;800&display=swap');
+$font-mont: 'Montserrat',
+sans-serif;
+$font-manrope: 'Manrope',
+sans-serif;
+$font-pop: 'Poppins',
+sans-serif;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    // background-color: #27374D;
+}
+
+::-webkit-scrollbar {
+    width: 0;
+    background-color: #27374D;
+}
+
+::-webkit-scrollbar-thumb {
+    width: 0;
+    background-color: #526D82;
+    cursor: pointer;
+}
+
+.input {
+    padding-left: .5rem;
+    padding-right: .5rem;
+    height: 100%;
+    width: calc(100% - 2rem);
+    border-radius: .3rem;
+    background-color: #27374D;
+    border: 1px solid #526D82;
+    color: white;
+    font-size: 1rem;
+    font-family: $font-mont;
+    &:focus {
+        outline: none;
+    }
+    &::placeholder {
+        font-family: 'Manrope';
+        color: #9DB2BF;
+    }
+}
+
+.others-message-element {
+    width: 100%;
+    height: fit-content;
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: '1rem';
+    .h4-holder {
+        // padding-left: -2.5rem;
+    }
+}
+
+.message-element {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.message-avatar {
+    padding: .2rem;
+    background-color: #27374D;
+    width: 2.5rem;
+    height: 2.5rem;
+    // display: flex;
+    // justify-content: center;
+    // align-items: center;
+    border-radius: 100%;
+}
+
+.chat-message {
+    font-family: $font-mont;
+    color: white;
+    font-size: .8rem;
+    padding: .5rem;
+    border-radius: .3rem;
+    background-color: steelblue;
+    width: fit-content;
+    max-width: 15rem;
+}
+
+.others-chat-message {
+    width: fit-content;
+    font-family: $font-mont;
+    color: white;
+    font-size: .8rem;
+    padding: .5rem;
+    border-radius: .3rem;
+    background-color: coral;
+}
+
+.chat-name {
+    font-family: $font-mont;
+    color: white;
+    font-size: 1.1rem;
+    max-width: 100%;
+    overflow-y: hidden;
+}
+
+.app-name {
+    font-family: $font-mont;
+    color: white;
+    font-size: 1.5rem;
+    max-width: 100%;
+    overflow-y: hidden;
+}
+
+.chat-name-dark {
+    font-family: $font-mont;
+    color: #526D82;
+    font-size: 1.1rem;
+}
+
+.chat-info {
+    font-family: $font-mont;
+    color: white;
+    font-size: 0.75rem;
+}
+
+.hide-message-area {
+    position: absolute;
+    top: 0;
+    right: -90vw;
+    animation: show 250ms linear forwards;
+    @keyframes show {
+        100% {
+            right: 0;
+            margin-right: 2.5vh;
+        }
+    }
+    // display: none;
+}
+
+.show-message-area {
+    // display: none;
+    position: absolute;
+    top: 0;
+    right: 1vh;
+    animation: hide 200ms linear forwards;
+    @keyframes hide {
+        100% {
+            right: -90vw;
+            margin-left: -1rem;
+        }
+    }
+}
