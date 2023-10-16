@@ -8,13 +8,13 @@ passport.use(new GoogleStrategy({
         callbackURL: "http://localhost:5500/google/callback",
         passReqToCallback: true
     },
-    function(request, accessToken, refreshToken, profile, done) {
+    async function(request, accessToken, refreshToken, profile, done) {
         // here we will create a user if not logged in before and if otherwise, we will find that user and fetch his info
-        // User.findOrCreate({ _id: profile.id }, function(err, user) {
-        //     console.log("user profile => ", profile)
-        //     return done(err, user);
-        // });
-        // console.log("user profile => ", profile)
+        const findUser = await User.findOne({ email: profile.emails[0].value })
+        if (!findUser) {
+            const createUser = await User.create({ name: profile.displayName, email: profile.emails[0], pic: profile.photos[0].value })
+        }
+        console.log(`Email ${profile.emails[0].value} already exist`);
         return done(null, profile);
     }
 ));
