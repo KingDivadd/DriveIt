@@ -5,9 +5,9 @@ require('dotenv').config()
 
 // Configure Cloudinary with your API credentials
 cloudinary.config({
-    cloud_name: "ddlitun0t",
-    api_secret: "L54LzHinn1lfSsa1Ivj8bybpnFs",
-    api_key: "724181796191326",
+    cloud_name: process.env.CLOUD_NAME,
+    api_secret: process.env.API_SECRET,
+    api_key: process.env.API_KEY,
 });
 
 const app = express();
