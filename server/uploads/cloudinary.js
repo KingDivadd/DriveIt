@@ -1,36 +1,44 @@
-// const cloudinary = require('cloudinary').v2;
-// // const cloudinary = (imagePath) => {
-// // Require the cloudinary library
+const cloudinary = require('cloudinary').v2;
+const express = require('express');
+const multer = require('multer');
+require('dotenv').config()
 
-// // Return "https" URLs by setting secure: true
-// cloudinary.config({
-//     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//     api_key: process.env.CLOUDINARY_API_KEY,
-//     api_secret: process.env.CLOUDINARY_API_SECRET,
-//     secure: true
-// });
-// // Log the configuration
-// console.log(cloudinary.config());
+// Configure Cloudinary with your API credentials
+cloudinary.config({
+    cloud_name: "ddlitun0t",
+    api_secret: "L54LzHinn1lfSsa1Ivj8bybpnFs",
+    api_key: "724181796191326",
+});
 
-// // Uploads an image file
-// const uploadImage = async(imagePath) => {
-//     // Use the uploaded file's name as the asset's public ID and 
-//     // allow overwriting the asset with new versions
-//     const options = {
-//         use_filename: true,
-//         unique_filename: false,
-//         overwrite: true,
-//     };
-//     try {
-//         // Upload the image
-//         const result = await cloudinary.uploader.upload(imagePath, options);
-//         console.log(result);
-//         return result.public_id;
-//     } catch (error) {
-//         console.error('error here', error);
-//     }
-// };
-// // uploadImage(imagePath)
-// // }
+const app = express();
 
-// // module.exports = uploadImage
+// Set up Multer for handling file uploads
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+// Define a route for handling file uploads
+app.post('/upload', upload.single('image'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded.');
+    }
+    if (req.file.mimetype === 'image/jpeg' || req.file.mimetype === 'image/png') {
+
+
+        // Upload the image to Cloudinary
+        cloudinary.uploader.upload_stream({ resource_type: 'auto' }, (error, result) => {
+            if (error) {
+                return res.status(500).send('Error uploading to Cloudinary: ' + error.message);
+            }
+
+            // Return the Cloudinary URL of the uploaded image
+            res.json({ url: result.secure_url });
+        }).end(req.file.buffer);
+    } else {
+        return res.status(400).send("File format not supported")
+    }
+});
+
+const port = 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});

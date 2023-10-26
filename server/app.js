@@ -11,11 +11,9 @@ const userRoute = require("./routes/user-route")
 const vehicleRoute = require("./routes/vehicle-route")
 const maintRoute = require("./routes/maint-route")
 const locationRoute = require("./routes/location-route")
+const imageRoute = require("./routes/image-route")
 const notFoundMiddleWare = require("./middleware/not-found-middleware")
 const passport = require('passport')
-const upload = require('./uploads/multer')
-const cloudinary = require('./uploads/cloudin')
-const fs = require('fs')
 
 
 const app = express()
@@ -69,24 +67,9 @@ app.get('/logout', (req, res) => {
     res.send(`Goodbye \n <a href="/auth/google"> Login </a>`)
 })
 
-// Image upload and shits
-app.use('/api/upload-images', upload.array('image'), async(req, res) => {
-    const uploader = async(path) => await cloudinary.uploads(path, 'Images')
-    if (req.method === 'POST') {
-        const urls = []
-        const files = req.files
 
-        for (const file of files) {
-            const { path } = file
-            const newPath = await uploader(path)
-            urls.push(newPath)
-            fs.unlinkSync(path)
-        }
-        res.status(200).json({ msg: "Image uploaded successfully.", data: urls })
-    } else {
-        res.status(405).json({ err: "Image upload was a failure" })
-    }
-})
+// Image uploads and shit 
+app.use("/api/upload", imageRoute)
 
 // Errors
 app.use(notFoundMiddleWare)

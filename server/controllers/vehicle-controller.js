@@ -5,7 +5,7 @@ const generateToken = require("../config/generateToken")
 
 // createing a vehicle instance
 const addVehicle = asyncHandler(async(req, res) => {
-    console.log(req.info.role, req.info.id)
+    // console.log(req.info.role, req.info.id)
     const { plate_no, engine_no, current_millage, department, vehicle_type, brand } = req.body
     if (req.info.role !== "vehicle_coordinator") {
         res.status(500).json({ msg: "Error. Not authorized to perform this operation" })
