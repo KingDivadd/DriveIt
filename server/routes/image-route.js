@@ -1,7 +1,8 @@
 const express = require('express')
 const router = express.Router()
-const { uploadImage } = require('../controllers/image-upload')
+const { uploadImage, deleteImage } = require('../controllers/image-upload')
+const tokenDecoder = require('../middleware/auth-middleware')
 
-router.route("/").post(uploadImage)
-
+router.route("/").post(tokenDecoder, uploadImage)
+router.route("/deleteimage").delete(tokenDecoder, deleteImage)
 module.exports = router

@@ -69,7 +69,7 @@ app.get('/logout', (req, res) => {
 
 
 // Image uploads and shit 
-app.use("/api/upload", imageRoute)
+app.use("/api/image", imageRoute)
 
 // Errors
 app.use(notFoundMiddleWare)

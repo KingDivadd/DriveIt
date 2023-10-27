@@ -13,6 +13,15 @@ const allUsers = asyncHandler(async(req, res) => {
     res.status(200).json({ nbHit: allUser.length, LoggedInUser: loggedInUser, AllUsers: allUser, })
 })
 
+const oneUser = asyncHandler(async(req, res) => {
+    const { email } = req.body
+    const oneUser = await User.findOne({ email })
+    if (!oneUser) {
+        res.status(400).json({ msg: `${email} is not a registered email address!!!` })
+    }
+    res.status(200).json({ userInfo: oneUser })
+})
+
 const editName = asyncHandler(async(req, res) => {
     const { name } = req.body
     if (name) {
@@ -28,15 +37,7 @@ const editName = asyncHandler(async(req, res) => {
 
 const editPic = asyncHandler(async(req, res) => {
     const { pic } = req.body
-    if (pic) {
-        const updatedPic = await User.findOneAndUpdate({ _id: req.info.id }, { pic }, { new: true, runValidator: true })
-        if (!updatedPic) {
-            res.status(500).json({ msg: "Change of name was unsuccessful." })
-        }
-        res.status(500).json({ msg: "Name changed successfully", user: updatedPic })
-    } else {
-        res.status(500).json({ msg: "Field is empty, therefore no changes on user name will be make" })
-    }
+        // I want to be able to access the image-upload and excute it from here
 })
 
 
@@ -80,4 +81,4 @@ const transferDriver = asyncHandler(async(req, res) => {
     res.status(500).json({ msg: "Not authorized to perform this opeartion" })
 })
 
-module.exports = { editName, editPic, editPhone, allUsers, addDriver, transferDriver }
+module.exports = { editName, editPic, editPhone, allUsers, addDriver, transferDriver, oneUser }

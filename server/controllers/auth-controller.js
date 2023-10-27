@@ -31,23 +31,28 @@ const signUp = asyncHandler(async(req, res) => {
 })
 
 const login = asyncHandler(async(req, res) => {
-    const { email, password } = req.body
-    if (!email || !password) {
-        res.status(500).json({ msg: "Field cannot be empty" })
-    }
-    const findUser = await User.findOne({ email })
-    if (!findUser) {
-        res.status(500).json({ msg: `User with ${email} not found` })
-    }
-    const userId = findUser._id
-    const findAuth = await Auth.findOne({ userId })
-    if (findAuth && (await findAuth.matchPassword(password))) {
-        res.status(200).json({ userInfo: findUser, token: generateToken(findUser._id, findUser.name, findUser.email, findUser.role) })
-    } else {
-        res.status(500).json({ msg: "Incorrect password, check password and try again later" })
-    }
+        const { email, password } = req.body
+        if (!email || !password) {
+            res.status(500).json({ msg: "Field cannot be empty" })
+        }
+        const findUser = await User.findOne({ email })
+        if (!findUser) {
+            res.status(500).json({ msg: `User with ${email} not found` })
+        }
+        const userId = findUser._id
+        const findAuth = await Auth.findOne({ userId })
+        if (findAuth && (await findAuth.matchPassword(password))) {
+            res.status(200).json({ userInfo: findUser, token: generateToken({ id: findUser._id, name: findUser.name, email: findUser.email, role: findUser.role, pic: findUser.pic }) })
+        } else {
+            res.status(500).json({ msg: "Incorrect password, check password and try again later" })
+        }
+    })
+    // reveryCode
+const recoveryCode = asyncHandler(async(req, res) => {
+
 })
 
+// this will work with sending email to the registered email for authentication...
 const recoverPassword = asyncHandler(async(req, res) => {
     const { email, password } = req.body
         //hash the entered password
@@ -60,7 +65,7 @@ const recoverPassword = asyncHandler(async(req, res) => {
         if (!findAuth) {
             res.status(500).json({ msg: "Password not changed successfully" })
         }
-        res.status(500).json({ msg: "Password updated successfully", userInfo: findAuth })
+        res.status(200).json({ msg: "Password updated successfully", userInfo: findAuth })
         sendEmail("Password Recovery", "Password recovered successfully", email)
     } else {
         res.status(500).json({ msg: `User info with email ${email} not found` })

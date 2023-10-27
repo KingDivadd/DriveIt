@@ -1,23 +1,24 @@
 import React from 'react'
+import { ChakraProvider } from '@chakra-ui/react'
 import {BrowserRouter, Routes, Route} from 'react-router-dom'
-import SignUp from './pages/signup'
-import Login from './pages/Login'
-import Home from './pages/home'
-import ChatInfoProvider from './contenxt/chatContext'
+import LandingPage from './pages/landing-page'
+import SignUp from './components/signup'
+import Login from './components/login'
+import RecoverPassword from './components/recoverPasswrod'
 
 const App = () => {
     
     return (
-        <ChatInfoProvider>
-                <BrowserRouter>
-                    <Routes>
-                        <Route path='/signup' Component={SignUp } />
-                        <Route path='/' Component={Login } />
-                        <Route path='/login' Component={Login } />
-                        <Route path='/home' Component={Home} />
-                    </Routes>
-                </BrowserRouter>
-        </ChatInfoProvider>
+    <ChakraProvider>
+        <BrowserRouter>
+            <Routes>
+                <Route path='/' Component={LandingPage } />
+                <Route path='/signup' Component={SignUp } />
+                <Route path='/login' Component={Login } />
+                <Route path='/recoverpassword' Component={RecoverPassword } />
+            </Routes>
+        </BrowserRouter>
+    </ChakraProvider>
     )
 }
 
