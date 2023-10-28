@@ -4,26 +4,42 @@ const Auth = require("../model/auth-model")
 const bcrypt = require('bcrypt')
 const generateToken = require('../config/generateToken')
 const sendEmail = require('../controllers/email-controller')
+const { StatusCodes } = require('http-status-codes')
+
+// code generation
+function uniqueCode() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let randomString = '';
+
+    for (let i = 0; i < 6; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        randomString += characters.charAt(randomIndex);
+    }
+
+    return randomString;
+}
 
 const signUp = asyncHandler(async(req, res) => {
     const { email, password, role, name, phone } = req.body
-    if (!email || !password || !role || !name || !phone) {
-        res.status(500).json({ msg: "Field cannot be empty" })
+    if (!email || !password) {
+        res.status(StatusCodes.BAD_REQUEST).json({ err: "Field cannot be empty" })
     }
     //now check if a user with that email exist
     const userExist = await User.findOne({ email })
     if (userExist) {
-        res.status(500).json({ msg: "User with email already exist" })
+        res.status(StatusCodes.BAD_REQUEST).json({ err: "User with email already exist" })
     } else {
         //save the new user into the db
         const newUser = await User.create(req.body)
             //save to auth collection
         const newAuth = await Auth.create({
             userId: newUser._id,
-            password: password
+            password: password,
+            uniqueCode: uniqueCode()
+
         })
         if (!newUser || !newAuth) {
-            res.status(500).json({ msg: "User created unsuccessfully" })
+            res.status(StatusCodes.BAD_REQUEST).json({ msg: "User creation failed!!!" })
         }
         res.status(200).json({ msg: "User created successfully", userInfo: newUser, token: generateToken(newUser._id, newUser.name, newUser.email, newUser.role) })
         sendEmail(`Account Creation`, `Welcome ${name} account created successfully`, email)
@@ -33,11 +49,11 @@ const signUp = asyncHandler(async(req, res) => {
 const login = asyncHandler(async(req, res) => {
         const { email, password } = req.body
         if (!email || !password) {
-            res.status(500).json({ msg: "Field cannot be empty" })
+            res.status(StatusCodes.BAD_REQUEST).json({ msg: "Field cannot be empty" })
         }
         const findUser = await User.findOne({ email })
         if (!findUser) {
-            res.status(500).json({ msg: `User with ${email} not found` })
+            res.status(StatusCodes.NOT_FOUND).json({ msg: `User with ${email} not found` })
         }
         const userId = findUser._id
         const findAuth = await Auth.findOne({ userId })
@@ -48,7 +64,36 @@ const login = asyncHandler(async(req, res) => {
         }
     })
     // reveryCode
+
 const recoveryCode = asyncHandler(async(req, res) => {
+    const { email } = req.body
+        // first check if the email exist
+    const verifyEmail = await User.findOne({ email })
+    if (!verifyEmail) {
+        res.status(400).json({ msg: `${email} is not a registered email, check email and try again...` })
+    }
+    // generatiing a new code for users
+    let genCode = uniqueCode()
+    const userAuth = await Auth.findOneAndUpdate({ userId: verifyEmail._id }, { uniqueCode: genCode }, { new: true, runValidators: true })
+    sendEmail("DrivIt-confirmation", `Hi ${verifyEmail.name}, Here's your password recovery code ${genCode}`, email)
+    res.status(200).json({ msg: 'Recovery code generated and sent successfylly...', info: userAuth })
+
+})
+
+const recoveryCodeVerify = asyncHandler(async(req, res) => {
+    const { email, code } = req.body
+
+    const verifyEmail = await User.findOne({ email })
+    if (!verifyEmail) {
+        res.status(400).json({ msg: `${email} is not a registered email, check email and try again...` })
+    }
+    let id = verifyEmail._id
+    const userAuth = await Auth.findOne({ userId: id })
+    if (code === userAuth.uniqueCode) {
+        res.status(200).json({ msg: 'Correct code provided' })
+    } else {
+        res.status(400).json({ err: 'Incorrect recovery code provided' })
+    }
 
 })
 
@@ -73,4 +118,4 @@ const recoverPassword = asyncHandler(async(req, res) => {
 
 })
 
-module.exports = { signUp, login, recoverPassword }
+module.exports = { signUp, login, recoverPassword, recoveryCode, recoveryCodeVerify }

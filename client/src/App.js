@@ -5,6 +5,7 @@ import LandingPage from './pages/landing-page'
 import SignUp from './components/signup'
 import Login from './components/login'
 import RecoverPassword from './components/recoverPasswrod'
+import Dashboard from './pages/dashboard'
 
 const App = () => {
     
@@ -16,6 +17,7 @@ const App = () => {
                 <Route path='/signup' Component={SignUp } />
                 <Route path='/login' Component={Login } />
                 <Route path='/recoverpassword' Component={RecoverPassword } />
+                <Route path='/dashboard' Component={Dashboard} />
             </Routes>
         </BrowserRouter>
     </ChakraProvider>

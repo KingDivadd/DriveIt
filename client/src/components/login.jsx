@@ -48,21 +48,21 @@ const Login = () => {
                         <VStack h={'100%'}  pt={'2.5rem'} alignItems={'center'}>
                             <Box fontWeight={'extrabold'}>DrivIt</Box>
                             <Heading size={'md'} fontWeight={'bold'} color={'blue.400'}>DIVAD TECHNOLOGIES</Heading>
-                            <Text>Create an account</Text>
+                            <Text>Login with credentials</Text>
                         </VStack>
                     </GridItem>
                     <GridItem rowSpan={9}  w={'27rem'}  p={2} >
-                        <Button size={'md'} colorScheme='linkedin' w={'100%'}>Login with google</Button>
+                        {/* <Button size={'md'} colorScheme='linkedin' w={'100%'}>Login with google</Button> */}
                         <VStack w={'100%'} mt={'2rem'} >
                             
                             <Box w={'100%'}>
                                 <Text mb={'8px'}>Email</Text>
-                                <Input type='email' name='email' value={newUser.email} variant='outline' placeholder='Email'  onChange={(e)=>handleInput(e)} />
+                                <Input size={'lg'} type='email' name='email' value={newUser.email} variant='outline'   onChange={(e)=>handleInput(e)} />
                             </Box>
                             <Box w={'100%'}>
                                 <Text mb={'8px'}>Password</Text>
                                 <InputGroup size='md'>
-                                    <Input pr='4.5rem' name='password' type={show ? 'text' : 'password'} placeholder='password' value={newUser.password} onChange={(e)=>handleInput(e)}/>
+                                    <Input size={'lg'} pr='4.5rem' name='password' type={show ? 'text' : 'password'}  value={newUser.password} onChange={(e)=>handleInput(e)}/>
                                     <InputRightElement width='4.5rem'>
                                         {newUser.password && <Button h='1.75rem' size='sm' onClick={handleClick}>
                                             {show ? 'Hide' : 'Show'}
@@ -71,7 +71,7 @@ const Login = () => {
                                 </InputGroup>
                             </Box>
                         </VStack>
-                        <Button size={'md'} mt={'2rem'} colorScheme='blue'  bg={'blue.400'} w={'100%'} onClick={handleLogin}>Login</Button>
+                        <Button size={'lg'} mt={'2rem'} colorScheme='blue'  bg={'blue.400'} w={'100%'} onClick={handleLogin}>Login</Button>
                         <Box w={'100%'} mt={'1rem'}display={'grid'} placeItems={'center'}>
                             <Link to={'/recoverpassword'}> <Text color={'blue.500'}>Forget password</Text> </Link>
                         </Box>

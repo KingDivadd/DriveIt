@@ -24,7 +24,8 @@ const RecoverPassword = () => {
             // first check if the
             let email = user.email
             try {
-                const user = await axios.post('http://localhost:5500/api/user/find-user', {email}, {headers: {
+                // i want to send a recovery code first
+                await axios.post('http://localhost:5500/api/auth/password-recovery-code', {email}, {headers: {
                     "Content-Type":"application/json"
                 }})
                 setNext(false)
@@ -38,17 +39,36 @@ const RecoverPassword = () => {
     const handlePrev = ()=>{
         setNext(true)
     }
-    const handleCode = ()=>{
-        if (user.code) {
+    const handleCode = async()=>{
+        const {code, email} = user
+        if (code) {
             // check whether the code is correct
-            console.log('code entered');
-            setProNext(false)
+            try {
+                await axios.post('http://localhost:5500/api/auth/recovery-code-verify', {email, code}, {headers: {
+                    "Content-Type":"application/json"
+                }})
+                console.log('code entered');
+                setProNext(false)
+            } catch (err) {
+                console.log(err.response.data.err);
+            }
         }else{
             console.log('Please enter the code');
         }
     }
-    const handleGenCode = ()=>{
-        console.log('generating another code');
+    const handleGenCode = async()=>{
+        try {
+                // i want to send a recovery code first
+                const email = user.email
+                await axios.post('http://localhost:5500/api/auth/password-recovery-code', {email}, {headers: {
+                    "Content-Type":"application/json"
+                }})
+                console.log('Check your email');
+                setNext(false)
+                setUser({...user,code: ''})
+            } catch (err) {
+                console.log(err.response.data.msg)
+            }
     }
     const handleNewPass = async()=>{
         const {password, email} = user
@@ -56,7 +76,7 @@ const RecoverPassword = () => {
             // check whether they are similar
             if (user.password === user.confirmPassword) {
                 try {
-                    const newPass = await axios.post('http://localhost:5500/api/auth/recover-password', {email, password}, {
+                    await axios.post('http://localhost:5500/api/auth/recover-password', {email, password}, {
                     headers: {
                         "Content-Type":"application/json" }})
                         console.log('Password changed successfully.');
@@ -88,10 +108,10 @@ const RecoverPassword = () => {
                         <VStack w={'100%'} mt={'2rem'} >
                             <Box w={'100%'}>
                                 <Text mb={'8px'}>Email</Text>
-                                <Input type='email' name='email' value={user.email} variant='outline' placeholder='Email'  onChange={(e)=>handleInput(e)} />
+                                <Input size={'lg'} type='email' name='email' value={user.email} variant='outline' placeholder='Email'  onChange={(e)=>handleInput(e)} />
                             </Box>
                         </VStack>
-                        <Button size={'md'} mt={'2rem'} colorScheme='blue'  bg={'blue.400'} w={'100%'} onClick={handleRecovery}>Get code</Button>
+                        <Button size={'lg'} mt={'2rem'} colorScheme='blue'  bg={'blue.400'} w={'100%'} onClick={handleRecovery}>Get code</Button>
                         <Box w={'100%'} mt={'1rem'}display={'grid'} placeItems={'center'}>
                             <Link to={'/login'}> <Text color={'blue.500'}>login</Text> </Link>
                         </Box>
@@ -99,16 +119,18 @@ const RecoverPassword = () => {
                     
                     <GridItem rowSpan={9} w={'27rem'} p={2}>
                         <VStack w={'100%'} mt={'2rem'}>
-                            <Text>A code has been sent to your email</Text>
+                            <Box bg={'green.100'} display={'flex'} w={'100%'} justifyContent={'center'} p={1} borderRadius={'.2rem'}>
+                                <Text  >A recovery code has already been sent to {user.email}</Text>
+                            </Box>
                             <Box w={'100%'}>
                                 <Text mb={'8px'}>Enter code</Text>
-                                <Input type='text' name='code' value={user.code} variant='outline' placeholder='XXXXXX'  onChange={(e)=>handleInput(e)} />
+                                <Input size={'lg'} type='text' name='code' value={user.code} variant='outline' placeholder='XXXXXX'  onChange={(e)=>handleInput(e)} />
                             </Box>
                             <Flex w={'100%'} gap={'2rem'} flexDir={'column'} >
                                 <ButtonGroup  w={'100%'} gap={'4rem'}>
-                                    <Button mt={'2rem'} colorScheme='orange'  bg={'orange.400'} w={'100%'} onClick={handlePrev}>Change email</Button>
+                                    <Button mt={'2rem'} variant={'link'} colorScheme='orange'  color={'orange.400'} w={'100%'} onClick={handlePrev}>Change email</Button>
                                     
-                                    <Button mt={'2rem'} colorScheme='blue'  bg={'blue.400'} w={'100%'} onClick={handleCode}>submit</Button>
+                                    <Button mt={'2rem'} size={'lg'} colorScheme='blue'  bg={'blue.400'} w={'100%'} onClick={handleCode}>submit</Button>
                                 </ButtonGroup>
                                 <Button w={'100%'} variant={'link'} color={'blue.500'} onClick={handleGenCode}>Didn't receive any code, click here</Button>
                             </Flex>
@@ -121,7 +143,7 @@ const RecoverPassword = () => {
                             <Box w={'100%'}>
                                 <Text mb={'8px'}>Password</Text>
                                 <InputGroup size='md'>
-                                    <Input pr='4.5rem' name='password' type={show ? 'text' : 'password'} placeholder='password' value={user.password} onChange={(e)=>handleInput(e)}/>
+                                    <Input size={'lg'} pr='4.5rem' name='password' type={show ? 'text' : 'password'}  value={user.password} onChange={(e)=>handleInput(e)}/>
                                     <InputRightElement width='4.5rem'>
                                         {user.password && <Button h='1.75rem' size='sm' onClick={handleClick}>
                                             {show ? 'Hide' : 'Show'}
@@ -132,7 +154,7 @@ const RecoverPassword = () => {
                             <Box w={'100%'}>
                                 <Text mb={'8px'}>Confirm Password</Text>
                                 <InputGroup size='md'>
-                                    <Input pr='4.5rem' name='confirmPassword' type={show ? 'text' : 'password'} placeholder='password' value={user.confirmPassword} onChange={(e)=>handleInput(e)}/>
+                                    <Input size={'lg'} pr='4.5rem' name='confirmPassword' type={show ? 'text' : 'password'}  value={user.confirmPassword} onChange={(e)=>handleInput(e)}/>
                                     <InputRightElement width='4.5rem'>
                                         {user.confirmPassword && <Button h='1.75rem' size='sm' onClick={handleClick}>
                                             {show ? 'Hide' : 'Show'}
@@ -140,7 +162,7 @@ const RecoverPassword = () => {
                                     </InputRightElement>
                                 </InputGroup>
                             </Box>
-                            <Button mt={'2rem'} colorScheme='blue'  bg={'blue.400'} w={'100%'} onClick={handleNewPass}>Change Password</Button>
+                            <Button size={'lg'} mt={'2rem'} colorScheme='blue'  bg={'blue.400'} w={'100%'} onClick={handleNewPass}>Change Password</Button>
                         </VStack>
                     </GridItem>
                     }

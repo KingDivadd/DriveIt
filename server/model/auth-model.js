@@ -3,7 +3,8 @@ const bcrypt = require('bcrypt')
 
 const authSchema = new mongoose.Schema({
     userId: { type: mongoose.Types.ObjectId, ref: "User", required: true },
-    password: { type: String, trim: true, required: true }
+    password: { type: String, trim: true, required: true },
+    uniqueCode: { type: String, trim: true, required: true },
 }, { timestamps: true })
 
 // Hash password
