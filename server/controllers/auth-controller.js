@@ -56,6 +56,7 @@ const login = asyncHandler(async(req, res) => {
             res.status(StatusCodes.NOT_FOUND).json({ msg: `User with ${email} not found` })
         }
         const userId = findUser._id
+        console.log(userId)
         const findAuth = await Auth.findOne({ userId })
         if (findAuth && (await findAuth.matchPassword(password))) {
             res.status(200).json({ userInfo: findUser, token: generateToken({ id: findUser._id, name: findUser.name, email: findUser.email, role: findUser.role, pic: findUser.pic }) })

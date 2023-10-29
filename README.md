@@ -29,4 +29,15 @@
     4.  Fetch all maintenance logs and/or Update. [feature only available to MAINTENANCE_PERSONNEL]
     5.  Fetch all daily vehicle logs and/or Update. [feature mainly for VEHICLE_ASSIGNEE AND DRIVER]
 5.  Additional features
+
     1.  Send necessary info to the logged in email.
+
+6.  Outstanding components
+    1.  SERVER SIDE
+        1.  Perfect the GOOGLE AUTH for signup and login.
+        2.  Integrate GPS API.
+        3.  fetch coordinate from a GPS hardware and update necessary infos.
+        4.  More work on the vehicle daily log area.
+        5.  Integrating socket.io.
+    2.  CLIENT SIDE
+        1.  A whole lot

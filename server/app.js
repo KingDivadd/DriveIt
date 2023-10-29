@@ -77,10 +77,10 @@ app.use(notFoundMiddleWare)
 
 // running the app
 const start = async() => {
-    const PORT = process.env.PORT
+    const PORT = process.env.PORT || 5500
     try {
         await connectDB()
-        app.listen(PORT, console.log(`SERVER started and running on PORT ${PORT}`.cyan.bold))
+        app.listen(PORT, console.log(`DriveIt SERVER started and running on PORT ${PORT}`.cyan.bold))
     } catch (err) {
         console.log('something went wrong'.red.bold, err)
     }
