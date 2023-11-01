@@ -1,6 +1,7 @@
 const passport = require('passport')
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require("../model/user-model")
+const { StatusCodes } = require('http-status-codes')
 
 passport.use(new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
@@ -9,13 +10,19 @@ passport.use(new GoogleStrategy({
         passReqToCallback: true
     },
     async function(request, accessToken, refreshToken, profile, done) {
-        // here we will create a user if not logged in before and if otherwise, we will find that user and fetch his info
-        const findUser = await User.findOne({ email: profile.emails[0].value })
-        if (!findUser) {
-            const createUser = await User.create({ name: profile.displayName, email: profile.emails[0], pic: profile.photos[0].value })
+
+        const userExist = await User.findOne({ email: profile.emails[0].value })
+        if (!userExist) {
+            console.log(`${profile.emails[0].value} is not a registered email address`)
+            const newUser = await User.create({ email: email, pic: profile.photos[0].value, name: profile.displayName })
+            if (!newUser) {
+                res.status(StatusCodes.BAD_REQUEST).json({ err: `User creation failed` })
+            }
+            res.status(StatusCodes.OK).json({ userInfo: newUser })
         }
-        console.log(`Email ${profile.emails[0].value} already exist`);
+        // console.log(`Name : ${profile.displayName}, email: ${profile.emails[0].value}, Pic: ${profile.photos[0].value}`)
         return done(null, profile);
+        res.status(200).json({ msg: `${profile.emails[0].value} is a registred email address.`, userInfo: userExist })
     }
 ));
 

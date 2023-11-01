@@ -46,8 +46,8 @@ const isLoggedIn = (req, res, next) => {
     req.user ? next() : res.sendStatus(401)
 }
 
-app.get("/", (req, res) => {
-    res.send(`<a href="/auth/google"> Authenticate with Google </a>`) // this will be a button in the front.
+app.get("/google", (req, res) => {
+    res.send(`<Button> <a href="/auth/google"> Authenticate with Google </a> </Button>`) // this will be a button in the front.
 })
 app.get("/home", isLoggedIn, (req, res) => {
     console.log(req.user)
