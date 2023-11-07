@@ -13,6 +13,14 @@ const allUsers = asyncHandler(async(req, res) => {
     res.status(200).json({ nbHit: allUser.length, LoggedInUser: loggedInUser, AllUsers: allUser, })
 })
 
+const getUsers = asyncHandler(async(req, res) => {
+    const users = await User.find({})
+    if (!users) {
+        return res.status(500).json({ err: `Error.... Unable to fetch users!!!` })
+    }
+    res.status(500).json({ users: users })
+})
+
 const oneUser = asyncHandler(async(req, res) => {
     const { email } = req.body
     const oneUser = await User.findOne({ email })
@@ -81,4 +89,4 @@ const transferDriver = asyncHandler(async(req, res) => {
     res.status(500).json({ msg: "Not authorized to perform this opeartion" })
 })
 
-module.exports = { editName, editPic, editPhone, allUsers, addDriver, transferDriver, oneUser }
+module.exports = { editName, editPic, editPhone, allUsers, addDriver, transferDriver, oneUser, getUsers }

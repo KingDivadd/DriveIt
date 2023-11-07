@@ -1,9 +1,10 @@
 const express = require('express')
 const router = express.Router()
-const { editName, editPic, editPhone, allUsers, addDriver, transferDriver, oneUser } = require('../controllers/user-controller')
+const { editName, editPic, editPhone, allUsers, addDriver, transferDriver, oneUser, getUsers } = require('../controllers/user-controller')
 const tokenDecoder = require('../middleware/auth-middleware')
 
 router.route('/all-users').get(tokenDecoder, allUsers)
+router.route('/users').get(getUsers)
 router.route('/find-user').post(oneUser)
 router.route('/edit-name').patch(tokenDecoder, editName)
 router.route('/edit-pic').patch(tokenDecoder, editPic)
