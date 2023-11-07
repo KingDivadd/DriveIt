@@ -6,11 +6,11 @@
     "scripts": {
         "start": "nodemon server/app"
     },
+    "author": "divadlabs",
+    "license": "ISC",
     "bin": {
         "execute": "app.js"
     },
-    "author": "divadlabs",
-    "license": "ISC",
     "dependencies": {
         "bcrypt": "^5.1.1",
         "body-parser": "^1.20.2",
