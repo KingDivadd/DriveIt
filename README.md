@@ -9,7 +9,7 @@
     1.  Signup. => name, email, password, [phone, pic]
     2.  Login.
     3.  Recover password
-    4.  Signup and login via GOOGLE AUTH
+    4.  Signup and login via GOOGLE AUTH => work i nprogress
 
 2.  User
     1.  Updating user profiles

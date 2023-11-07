@@ -12,6 +12,7 @@ const vehicleRoute = require("./routes/vehicle-route")
 const maintRoute = require("./routes/maint-route")
 const locationRoute = require("./routes/location-route")
 const imageRoute = require("./routes/image-route")
+const driverLog = require("./routes/driver-log-route")
 const notFoundMiddleWare = require("./middleware/not-found-middleware")
 const passport = require('passport')
 
@@ -39,6 +40,7 @@ app.use("/api/user", userRoute)
 app.use("/api/vehicle", vehicleRoute)
 app.use("/api/maint", maintRoute)
 app.use("/api/location", locationRoute)
+app.use("/api/driver-log", driverLog)
 
 //----- practicing google auth
 

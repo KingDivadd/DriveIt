@@ -56,7 +56,6 @@ const login = asyncHandler(async(req, res) => {
             res.status(StatusCodes.NOT_FOUND).json({ msg: `User with ${email} not found` })
         }
         const userId = findUser._id
-        console.log(userId)
         const findAuth = await Auth.findOne({ userId })
         if (findAuth && (await findAuth.matchPassword(password))) {
             res.status(200).json({ userInfo: findUser, token: generateToken({ id: findUser._id, name: findUser.name, email: findUser.email, role: findUser.role, pic: findUser.pic }) })
@@ -75,7 +74,7 @@ const recoveryCode = asyncHandler(async(req, res) => {
     }
     // generatiing a new code for users
     let genCode = uniqueCode()
-    const userAuth = await Auth.findOneAndUpdate({ userId: verifyEmail._id }, { uniqueCode: genCode }, { new: true, runValidators: true })
+    const userAuth = await Auth.findOneAndUpdate({ userId: verifyEmail._id }, { uniqueCode: genCode }, { new: true, runValidators: true }).select('userId uniqueCode')
     sendEmail("DrivIt-confirmation", `Hi ${verifyEmail.name}, Here's your password recovery code ${genCode}`, email)
     res.status(200).json({ msg: 'Recovery code generated and sent successfylly...', info: userAuth })
 
@@ -107,7 +106,7 @@ const recoverPassword = asyncHandler(async(req, res) => {
     if (findUser) {
         const salt = await bcrypt.genSalt(10)
         const newPassword = await bcrypt.hash(password, salt)
-        const findAuth = await Auth.findOneAndUpdate({ userId }, { password: newPassword }, { new: true, runValidator: true })
+        const findAuth = await Auth.findOneAndUpdate({ userId }, { password: newPassword }, { new: true, runValidator: true }).select("userId uniqueCode")
         if (!findAuth) {
             res.status(500).json({ msg: "Password not changed successfully" })
         }

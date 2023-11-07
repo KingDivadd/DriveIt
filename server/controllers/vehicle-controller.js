@@ -2,13 +2,14 @@ const asyncHandler = require('express-async-handler')
 const Vehicle = require('../model/vehicle-model')
 const User = require('../model/user-model')
 const generateToken = require("../config/generateToken")
+const { StatusCodes } = require("http-status-codes")
 
 // createing a vehicle instance
 const addVehicle = asyncHandler(async(req, res) => {
     // console.log(req.info.role, req.info.id)
     const { plate_no, engine_no, current_millage, department, vehicle_type, brand } = req.body
     if (req.info.role !== "vehicle_coordinator") {
-        res.status(500).json({ msg: "Error. Not authorized to perform this operation" })
+        res.status(StatusCodes.UNAUTHORIZED).json({ msg: "Error. Not authorized to perform this operation" })
     } else {
         if (!plate_no || !engine_no || !vehicle_type || !brand) {
             res.status(500).json({ msg: "Please enter the vehicle's PLATE NUMBER and ENGINE NUMBER" })
@@ -18,9 +19,9 @@ const addVehicle = asyncHandler(async(req, res) => {
         if (vehicleExist) {
             res.status(500).json({ msg: `Vehicle with Plate NO. ${plate_no} already exist`.red })
         }
-        const added_by = req.info.id
-        const newVehicle = await Vehicle.create({ plate_no, vehicle_type, engine_no, current_millage, department, brand, added_by })
-        res.status(200).json({ new_Vehicle: newVehicle, token: generateToken(plate_no, engine_no) })
+        req.body.added_by = req.info.id
+        const newVehicle = await Vehicle.create(req.body)
+        res.status(StatusCodes.CREATED).json({ new_Vehicle: newVehicle, token: generateToken(plate_no, engine_no) })
     }
 })
 
@@ -30,7 +31,7 @@ const getAllVehicles = asyncHandler(async(req, res) => {
     if (!allVehicles) {
         res.status(500).json({ msg: "Error Fetching all vehicles" })
     }
-    res.status(200).json({ nbHits: allVehicles.length, allVehicles: allVehicles })
+    res.status(StatusCodes.OK).json({ nbHits: allVehicles.length, allVehicles: allVehicles })
 })
 
 // Update vehicle infomation
@@ -77,7 +78,7 @@ const updateVehicleInfo = asyncHandler(async(req, res) => {
 
     const newVehicleInfo = await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { $set: update }, { new: true, runValidators: true })
 
-    res.status(200).json({ msg: "Vehicle Info updated successfully", newInfo: newVehicleInfo })
+    res.status(StatusCodes.OK).json({ msg: "Vehicle Info updated successfully", newInfo: newVehicleInfo })
 })
 
 module.exports = { addVehicle, updateVehicleInfo, getAllVehicles }

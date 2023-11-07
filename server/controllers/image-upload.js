@@ -1,5 +1,4 @@
 const cloudinary = require('cloudinary').v2;
-const express = require('express');
 const multer = require('multer');
 require('dotenv').config()
 const User = require('../model/user-model')
@@ -11,7 +10,6 @@ cloudinary.config({
     api_key: process.env.API_KEY,
 });
 
-const app = express();
 
 // Set up Multer for handling file uploads
 const storage = multer.memoryStorage();
