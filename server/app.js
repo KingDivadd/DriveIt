@@ -19,15 +19,15 @@ const notFoundMiddleWare = require("./middleware/not-found-middleware")
 
 const app = express()
 
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    cookie: {
-        maxAge: 60000 * 1,
-        secure: false
-    }
-}))
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(session({
+//     secret: process.env.SESSION_SECRET,
+//     cookie: {
+//         maxAge: 60000 * 1,
+//         secure: false
+//     }
+// }))
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 app.use(express.json())
 app.use(cors())
