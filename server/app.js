@@ -14,7 +14,7 @@ const locationRoute = require("./routes/location-route")
 const imageRoute = require("./routes/image-route")
 const driverLog = require("./routes/driver-log-route")
 const notFoundMiddleWare = require("./middleware/not-found-middleware")
-const passport = require('passport')
+    // const passport = require('passport')
 
 
 const app = express()
@@ -44,30 +44,30 @@ app.use("/api/driver-log", driverLog)
 
 //----- practicing google auth
 
-const isLoggedIn = (req, res, next) => {
-    req.user ? next() : res.sendStatus(401)
-}
+// const isLoggedIn = (req, res, next) => {
+//     req.user ? next() : res.sendStatus(401)
+// }
 
-app.get("/google", (req, res) => {
-    res.send(`<Button> <a href="/auth/google"> Authenticate with Google </a> </Button>`) // this will be a button in the front.
-})
-app.get("/home", isLoggedIn, (req, res) => {
-    console.log(req.user)
-    res.send(`Hello ${req.user.displayName}`)
-})
-app.get('/auth/google', passport.authenticate('google', { scope: ["email", "profile"] }));
-app.get(`/google/callback`, passport.authenticate('google', { successRedirect: '/home', failureRedirect: '/auth/failure' }))
+// app.get("/google", (req, res) => {
+//     res.send(`<Button> <a href="/auth/google"> Authenticate with Google </a> </Button>`) // this will be a button in the front.
+// })
+// app.get("/home", isLoggedIn, (req, res) => {
+//     console.log(req.user)
+//     res.send(`Hello ${req.user.displayName}`)
+// })
+// app.get('/auth/google', passport.authenticate('google', { scope: ["email", "profile"] }));
+// app.get(`/google/callback`, passport.authenticate('google', { successRedirect: '/home', failureRedirect: '/auth/failure' }))
 
-app.get(`/auth/failure`, (req, res) => {
-    res.send("Something went wrong") // should be  a designed page on the frontend.
-})
+// app.get(`/auth/failure`, (req, res) => {
+//     res.send("Something went wrong") // should be  a designed page on the frontend.
+// })
 
-app.get('/logout', (req, res) => {
-    // req.logout();
-    req.session.destroy()
-        // res.send('Goodbye')
-    res.send(`Goodbye \n <a href="/auth/google"> Login </a>`)
-})
+// app.get('/logout', (req, res) => {
+//     // req.logout();
+//     req.session.destroy()
+//         // res.send('Goodbye')
+//     res.send(`Goodbye \n <a href="/auth/google"> Login </a>`)
+// })
 
 
 // Image uploads and shit 
