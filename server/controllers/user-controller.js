@@ -18,7 +18,7 @@ const getUsers = asyncHandler(async(req, res) => {
     if (!users) {
         return res.status(500).json({ err: `Error.... Unable to fetch users!!!` })
     }
-    res.status(500).json({ users: users })
+    res.status(500).json({ userInfos: users })
 })
 
 const oneUser = asyncHandler(async(req, res) => {
