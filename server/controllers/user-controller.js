@@ -14,11 +14,12 @@ const allUsers = asyncHandler(async(req, res) => {
 })
 
 const getUsers = asyncHandler(async(req, res) => {
-    const users = await User.find({})
-    if (!users) {
-        return res.status(500).json({ err: `Error.... Unable to fetch users!!!` })
-    }
-    res.status(500).json({ users: users })
+    // const users = await User.find({})
+    // if (!users) {
+    //     return res.status(500).json({ err: `Error.... Unable to fetch users!!!` })
+    // }
+    // res.status(500).json({ users: users })
+    res.send('testing web app')
 })
 
 const oneUser = asyncHandler(async(req, res) => {
