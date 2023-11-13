@@ -1,4 +1,6 @@
 const express = require('express')
+const http = require('http')
+const { Server } = require('socket.io')
 const bodyParser = require('body-parser')
 const connectDB = require('./config/db')
 const cors = require('cors')
@@ -14,10 +16,12 @@ const locationRoute = require("./routes/location-route")
 const imageRoute = require("./routes/image-route")
 const driverLog = require("./routes/driver-log-route")
 const notFoundMiddleWare = require("./middleware/not-found-middleware")
-    // const passport = require('passport')
 
+// const passport = require('passport')
 
 const app = express()
+const server = http.createServer(app)
+
 
 // app.use(session({
 //     secret: process.env.SESSION_SECRET,
@@ -33,6 +37,23 @@ app.use(express.json())
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+
+// socket
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:3000",
+        methods: ["GET", "POST", "PATCH", "DELETE", "PUT"]
+    }
+})
+
+io.on("connection", (socket) => {
+    console.log(`User connected: ${socket.id}`.yellow.bold)
+
+    socket.on("send_message", (data) => {
+        socket.broadcast.emit("receive_message", data)
+    })
+})
+
 
 // Routes
 app.use("/api/auth", authRoute)
@@ -82,7 +103,7 @@ const start = async() => {
     const PORT = process.env.PORT || 5500
     try {
         await connectDB()
-        app.listen(PORT, console.log(`DriveIt SERVER started and running on PORT ${PORT}`.cyan.bold))
+        server.listen(PORT, console.log(`DriveIt SERVER started andd running on PORT ${PORT}`.cyan.bold))
     } catch (err) {
         console.log('something went wrong'.red.bold, err)
     }

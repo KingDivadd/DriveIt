@@ -51,7 +51,7 @@ const login = asyncHandler(async(req, res) => {
         if (!email || !password) {
             res.status(StatusCodes.BAD_REQUEST).json({ msg: "Field cannot be empty" })
         }
-        const findUser = await User.findOne({ email })
+        const findUser = await User.findOne({ email }).populate("vehicle")
         if (!findUser) {
             res.status(StatusCodes.NOT_FOUND).json({ msg: `User with ${email} not found` })
         }
