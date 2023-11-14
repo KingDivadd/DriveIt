@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler')
 const User = require('../model/user-model')
 const Vehicle = require("../model/vehicle-model")
 const { StatusCodes } = require("http-status-codes")
+const sendEmail = require("./email-controller")
 
 // this role is restricted to the maintenance personnel and the vehicle coordinators alone
 const allUsers = asyncHandler(async(req, res) => {
@@ -94,60 +95,60 @@ const editPic = asyncHandler(async(req, res) => {
 })
 
 // Tranfer Driver to a vehicle assignee so the assignee can then add them
-const transferDriver = asyncHandler(async(req, res) => {
-    // the ability to transfer driver is only restricted to the vehicle_coordinators
+const assignDriver = asyncHandler(async(req, res) => {
     const { assignee_id, driver_id } = req.body
-    if (req.info.id.role !== "vehicle_coordinator") {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... You are not authorized to perform this operation` })
+    if (req.info.id.role !== 'vehicle_coordinator') {
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Not Authorized to perfom this operation!!!` })
     }
-    // first check if the driver_id exist and his role is actually a driver
+    if (!assignee_id || !driver_id) {
+        return res.status(500).json({ err: `Error... Provide the Assignee and Driver's Id` })
+    }
+    // check if the driver exist
     const driverExist = await User.findOne({ _id: driver_id })
     if (!driverExist) {
-        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... User with id not found` })
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Driver with ID '${driver_id}' not found!!!` })
     }
-    if (!driverExist.role !== "driver") {
-        return res.status(StatusCodes.CONFLICT).json({ err: `Error... User not a driver` })
+    // check if the role is 'driver'
+    if (driverExist.role !== 'driver') {
+        return res.status(StatusCodes.BAD_REQUEST).json({ err: `Error... User whose Id is provided is not a driver!!!` })
     }
-    // find where the driver was before
-    const prevAssignee = await User.find({ driver: driver_id })
-        // now check that the asignee is a driver
-    const assigneeExist = await User.findOne({ _id: assignee_id })
-    if (!assigneeExist) {
-        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... User with id not found` })
+    // now check if driver is already assigned to a assignee, if yes remove 
+    const assignee = await User.find({ driver: driver_id })
+    if (assignee.length > 0) {
+        const prevAssignee = await User.findOneAndUpdate({ driver: driver_id }, { driver: null }, { new: true, runValidators: true })
+        sendEmail("Driver Transfer/Removal", { firstName: prevAssignee.firstName, info: `We regret to inform you that your driver has been removed/reassigned.`, code: `` }, prevAssignee.email)
     }
-    const transferDriver = await User.findOneAndUpdate({ _id: assignee_id }, { driver: driver_id }, { new: true, runValidators: true })
-    if (!transferDriver) {
-        return res.status(500).json({ err: `Error... Unable to tranfer driver from ${prevAssignee.lastName} to ${transferDriver.lastName}` })
-    }
-    res.status(StatusCodes.OK).json({ msg: `Driver transfered from ${prevAssignee.lastName} to ${transferDriver.lastName}'s dept` })
+    // now add the driver to the newAssignee
+    const newAssignee = await User.findOneAndUpdate({ _id: assignee_id }, { driver: driver_id }, { new: true, runValidators: true })
+
+    sendEmail("Driver Assignment", { firstName: newAssignee.firstName, info: `We are pleased to inform you that a driver whose name is below has been assigned to you.`, code: `${driverExist.lastName} ${driverExist.firstName}` }, newAssignee.email)
+
+    res.status(StatusCodes.OK).json({ msg: `Driver has been assed to ${newAssignee.firstName} ${newAssignee.lastName} successfully. `, newAssigneeInfo: newAssignee })
+
 })
 
-// Add driver to Profile -- Available to everyone except the drivers
-const addDriver = asyncHandler(async(req, res) => {
-    const { driver_id } = req.body
-    if (req.info.id.role === "driver") {
-        return res.status(500).json({ err: `Error... Cannot perfom this operation!!!` })
+// remove drive from an assignee
+const removeDriver = asyncHandler(async(req, res) => {
+    const { assignee_id } = req.body
+    if (req.info.id.role !== "vehicle_coordinator") {
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Not AUTHORIZED to perform this operation!!!` })
     }
-    // find user and ensure, his role is a driver.
-    const verifyDriver = await User.findOne({ _id: driver_id })
-    if (!verifyDriver) {
-        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... User not found!!!` })
+    // make sure only non-drivers are subjected to these feature
+    const driver = await User.findOne({ _id: assignee_id })
+    if (driver.role === "driver") {
+        return res.status(500).json({ err: `Error... Drivers do not have drivers` })
     }
-    if (verifyDriver.role !== "driver") {
-        return res.status(500).json({ msg: `User to be added isn't a driver!!!` })
+    // now make sure that the assignee driver is not null
+    if (driver.driver === null) {
+        return res.status(500).json({ msg: `Assignee's driver has already been removed / transfered!!!` })
     }
-    // now we check if he already exist in another staff's model other wise we add him
-    const driverExist = await User.find({ driver: driver_id })
-    if (driverExist.length) {
-        return res.status(500).json({ err: `Driver already assigned to ${driverExist.firstName}`, user: driverExist })
+    const removeDriver = await User.findOneAndUpdate({ _id: assignee_id }, { driver: null }, { new: true, runValidators: true })
+    if (!removeDriver) {
+        return res.status(500).json({ err: `Error... Unable to remove driver!!!` })
     }
-    // vehicle assignee should be only be able to select driver if the vehicle_coordinator has transfered them to their dept
-    await User.findByIdAndUpdate({ _id: req.info.id.id }, { driver: driver_id }, { new: true, runValidator: true }).populate("driver")
-        // now we fetch the user info of the staff who has added a driver and populate the driver
-    const loggedInUser = await User.findOne({ _id: req.info.id.id }).populate("driver", "")
-    res.status(200).json({ loggedInUser: loggedInUser })
+    sendEmail("Driver Transfer", { firstName: removeDriver.firstName, info: `We regret to inform you that your driver has been removed / transfered.`, code: '' }, removeDriver.email)
+    res.status(StatusCodes.OK).json({ msg: `Driver removed successfully`, assigneeInfo: removeDriver })
 })
-
 
 
 const assignVehicleToDriver = asyncHandler(async(req, res) => {
@@ -221,4 +222,4 @@ const removeUser = asyncHandler(async(req, res) => {
 
 })
 
-module.exports = { editPic, updateUserInfo, allUsers, addDriver, transferDriver, oneUser, filterUsers, removeUser, assignVehicleToDriver }
+module.exports = { editPic, updateUserInfo, allUsers, assignDriver, removeDriver, oneUser, filterUsers, removeUser, assignVehicleToDriver }
