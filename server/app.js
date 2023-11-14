@@ -16,6 +16,7 @@ const locationRoute = require("./routes/location-route")
 const imageRoute = require("./routes/image-route")
 const driverLog = require("./routes/driver-log-route")
 const notFoundMiddleWare = require("./middleware/not-found-middleware")
+const errorHandlerMiddleWare = require("./middleware/error-handler-middleware")
 
 // const passport = require('passport')
 
@@ -96,6 +97,7 @@ app.use("/api/image", imageRoute)
 
 // Errors
 app.use(notFoundMiddleWare)
+app.use(errorHandlerMiddleWare)
 
 
 // running the app

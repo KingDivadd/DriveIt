@@ -41,7 +41,7 @@ const signUp = asyncHandler(async(req, res) => {
         if (!newUser || !newAuth) {
             return res.status(StatusCodes.BAD_REQUEST).json({ msg: "User creation failed!!!" })
         }
-        res.status(200).json({ msg: "User created successfully", userInfo: newUser, token: generateToken(newUser._id, newUser.firstName, newUser.lastName, newUser.role) })
+        res.status(200).json({ msg: "User created successfully", userInfo: newUser, token: generateToken({ id: newUser._id, firstName: newUser.firstName, lastName: newUser.lastName, role: newUser.role, pic: newUser.pic }) })
         sendEmail("Account Createion", { firstName: newUser.firstName, info: "Welcome to FUTA OptiDrive. A platform for managing futa's official fleet of vehicles...", code: '' }, email)
     }
 })
@@ -65,7 +65,7 @@ const signIn = asyncHandler(async(req, res) => {
         const userId = findUser._id
         const findAuth = await Auth.findOne({ userId })
         if (findAuth && (await findAuth.matchPassword(password))) {
-            res.status(200).json({ userInfo: findUser, token: generateToken(findUser._id, findUser.firstName, findUser.lastName, findUser.role, findUser.pic) })
+            res.status(200).json({ userInfo: findUser, token: generateToken({ id: findUser._id, firstName: findUser.firstName, lastName: findUser.lastName, role: findUser.role, pic: findUser.pic }) })
         } else {
             res.status(500).json({ msg: "Incorrect password, check password and try again later" })
         }

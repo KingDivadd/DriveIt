@@ -3,19 +3,20 @@ const User = require('../model/user-model')
 const Vehicle = require("../model/vehicle-model")
 const { StatusCodes } = require("http-status-codes")
 
+// this role is restricted to the maintenance personnel and the vehicle coordinators alone
 const allUsers = asyncHandler(async(req, res) => {
     const allUser = await User.find({})
     if (!allUser) {
         res.status(500).json({ msg: "Error fetching all users" })
     }
-    const loggedInUser = await User.findOne({ _id: req.info.id.id })
-    if (!loggedInUser) {
-        res.status(500).json({ msg: ' Error, USER NOT FOUND. the Developer should be questioned, Because how come' })
+    const users = await User.find({ _id: { $ne: req.info.id.id } })
+    if (!users) {
+        res.status(500).json({ msg: ' Error fetching users' })
     }
-    res.status(200).json({ nbHit: allUser.length, LoggedInUser: loggedInUser, AllUsers: allUser, })
+    res.status(200).json({ nbHit: allUser.length, users: users })
 })
 
-const getUsers = asyncHandler(async(req, res) => {
+const oneUser = asyncHandler(async(req, res) => {
     const users = await User.find({})
     if (!users) {
         return res.status(500).json({ err: `Error.... Unable to fetch users!!!` })
@@ -23,13 +24,68 @@ const getUsers = asyncHandler(async(req, res) => {
     res.status(500).json({ userInfos: users })
 })
 
-const oneUser = asyncHandler(async(req, res) => {
-    const { email } = req.body
-    const oneUser = await User.findOne({ email })
-    if (!oneUser) {
-        res.status(400).json({ msg: `${email} is not a registered email address!!!` })
+const filterUsers = asyncHandler(async(req, res) => {
+    const { firstName, lastName, dept, role } = req.body;
+
+    // Check if all filter values are empty
+    if (!firstName && !lastName && !dept && !role) {
+        return res.status(400).json({ msg: `Error... At least one filter must be provided` });
     }
-    res.status(200).json({ userInfo: oneUser })
+
+    const query = {};
+
+    if (firstName) {
+        query.firstName = { $regex: new RegExp(firstName, 'i') };
+    }
+
+    if (lastName) {
+        query.lastName = { $regex: new RegExp(lastName, 'i') };
+    }
+
+    if (dept) {
+        query.dept = { $regex: new RegExp(dept, 'i') };
+    }
+
+    if (role) {
+        query.role = { $regex: new RegExp(role, 'i') };
+    }
+
+    const users = await User.find(query);
+
+    if (!users.length) {
+        return res.status(404).json({ msg: `No matching users found` });
+    }
+
+    res.status(StatusCodes.OK).json({ users: users });
+})
+
+const updateUserInfo = asyncHandler(async(req, res) => {
+    const { id: user_id } = req.params
+    const { firstName, lastName, staffId, phone, } = req.body
+    if (user_id !== req.info.id.id) {
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Not Authorized to make changes` })
+    }
+    const update = {}
+    if (firstName.trim() !== '') {
+        update.firstName = firstName.trim()
+    }
+    if (lastName.trim() !== '') {
+        update.lastName = lastName.trim()
+    }
+    if (staffId.trim() !== '') {
+        update.staffId = staffId.trim()
+    }
+    if (phone.trim() !== '') {
+        update.phone = phone.trim()
+    }
+    // if (pic.trim() !== ''){
+    //     update.pic = pic.trim()
+    // }
+    const updateInfo = await User.findOneAndUpdate({ _id: req.info.id.id }, { $set: update }, { new: true, runValidators: true })
+    if (!updateInfo) {
+        return res.status(500).json({ err: `Error... unable to update user info!!!` })
+    }
+    res.status(StatusCodes.OK).json({ msg: `User info updated successfully`, userInfo: updateInfo })
 })
 
 const editPic = asyncHandler(async(req, res) => {
@@ -37,56 +93,63 @@ const editPic = asyncHandler(async(req, res) => {
         // I want to be able to access the image-upload and excute it from here
 })
 
-
-
-// Add driver to Profile -- Only available to vehicle assignee and Vehicle coordinator
-const addDriver = asyncHandler(async(req, res) => {
-    const { driver_id } = req.body
-        // find user and ensure, his role is a driver.
-    const verifyDriver = await User.findOne({ _id: driver_id })
-    if (verifyDriver.role === "driver") {
-        const addDriver = await User.findByIdAndUpdate({ _id: req.info.id.id }, { driver: driver_id }, { new: true, runValidator: true })
-        res.status(200).json({ LoggedInUser: addDriver })
+// Tranfer Driver to a vehicle assignee so the assignee can then add them
+const transferDriver = asyncHandler(async(req, res) => {
+    // the ability to transfer driver is only restricted to the vehicle_coordinators
+    const { assignee_id, driver_id } = req.body
+    if (req.info.id.role !== "vehicle_coordinator") {
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... You are not authorized to perform this operation` })
     }
-    res.status(500).json({ msg: "Selected user isn't a driver." })
+    // first check if the driver_id exist and his role is actually a driver
+    const driverExist = await User.findOne({ _id: driver_id })
+    if (!driverExist) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... User with id not found` })
+    }
+    if (!driverExist.role !== "driver") {
+        return res.status(StatusCodes.CONFLICT).json({ err: `Error... User not a driver` })
+    }
+    // find where the driver was before
+    const prevAssignee = await User.find({ driver: driver_id })
+        // now check that the asignee is a driver
+    const assigneeExist = await User.findOne({ _id: assignee_id })
+    if (!assigneeExist) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... User with id not found` })
+    }
+    const transferDriver = await User.findOneAndUpdate({ _id: assignee_id }, { driver: driver_id }, { new: true, runValidators: true })
+    if (!transferDriver) {
+        return res.status(500).json({ err: `Error... Unable to tranfer driver from ${prevAssignee.lastName} to ${transferDriver.lastName}` })
+    }
+    res.status(StatusCodes.OK).json({ msg: `Driver transfered from ${prevAssignee.lastName} to ${transferDriver.lastName}'s dept` })
 })
 
-// Tranfer Driver from on dept to another
-const transferDriver = asyncHandler(async(req, res) => {
-        const { driver_id, dept } = req.body
-        const verifyDriver = await User.findOne({ _id: driver_id })
-            // ensure that the person about to make the transfer is a vehicle coordinator
-        if (req.info.role === "vehicle_coordinator") {
-            if (verifyDriver.role === "driver") {
-                const transerDriver = await User.findByIdAndUpdate({ _id: driver_id }, { dept }, { new: true, runValidator: true })
-                res.status(200).json({ transferedDriver: transerDriver })
-            }
-            res.status(200).json({ msg: "Error, user is not a driver." })
-        }
-        res.status(500).json({ msg: "Not authorized to perform this opeartion" })
-    })
-    // ---------------------#################################-----------------------------------
-    // should only be done by the logged in user
-const updateUserInfo = asyncHandler(async(req, res) => {
-        const { name, phone, } = req.body
-        const update = {}
-            // should be able to change [name, phone, pic]
-        if (name.trim() !== '') {
-            update.name = name.trim()
-        }
-        if (phone.trim() !== '') {
-            update.phone = phone.trim()
-        }
-        // if (pic.trim() !== ''){
-        //     update.pic = pic.trim()
-        // }
-        const updateInfo = await User.findOne({ _id: req.info.id.id }, { name, phone }, { new: true, runValidators: true })
-        if (!userInfo) {
-            return res.status(500).json({ err: `Error... unable to update user info!!!` })
-        }
-        res.status(StatusCodes.OK).json({ msg: `User info updated successfully`, userInfo: updateInfo })
-    })
-    // ---------------------#################################-----------------------------------
+// Add driver to Profile -- Available to everyone except the drivers
+const addDriver = asyncHandler(async(req, res) => {
+    const { driver_id } = req.body
+    if (req.info.id.role === "driver") {
+        return res.status(500).json({ err: `Error... Cannot perfom this operation!!!` })
+    }
+    // find user and ensure, his role is a driver.
+    const verifyDriver = await User.findOne({ _id: driver_id })
+    if (!verifyDriver) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... User not found!!!` })
+    }
+    if (verifyDriver.role !== "driver") {
+        return res.status(500).json({ msg: `User to be added isn't a driver!!!` })
+    }
+    // now we check if he already exist in another staff's model other wise we add him
+    const driverExist = await User.find({ driver: driver_id })
+    if (driverExist.length) {
+        return res.status(500).json({ err: `Driver already assigned to ${driverExist.firstName}`, user: driverExist })
+    }
+    // vehicle assignee should be only be able to select driver if the vehicle_coordinator has transfered them to their dept
+    await User.findByIdAndUpdate({ _id: req.info.id.id }, { driver: driver_id }, { new: true, runValidator: true }).populate("driver")
+        // now we fetch the user info of the staff who has added a driver and populate the driver
+    const loggedInUser = await User.findOne({ _id: req.info.id.id }).populate("driver", "")
+    res.status(200).json({ loggedInUser: loggedInUser })
+})
+
+
+
 const assignVehicleToDriver = asyncHandler(async(req, res) => {
     const { id: user_id } = req.params
     const { vehicle_id } = req.body
@@ -158,4 +221,4 @@ const removeUser = asyncHandler(async(req, res) => {
 
 })
 
-module.exports = { editPic, updateUserInfo, allUsers, addDriver, transferDriver, oneUser, getUsers, removeUser, assignVehicleToDriver }
+module.exports = { editPic, updateUserInfo, allUsers, addDriver, transferDriver, oneUser, filterUsers, removeUser, assignVehicleToDriver }
