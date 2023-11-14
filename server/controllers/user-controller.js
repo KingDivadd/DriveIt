@@ -89,7 +89,7 @@ const updateUserInfo = asyncHandler(async(req, res) => {
     // ---------------------#################################-----------------------------------
 const assignVehicleToDriver = asyncHandler(async(req, res) => {
     const { id: user_id } = req.params
-    const { vehicle_id, } = req.body
+    const { vehicle_id } = req.body
     if (req.info.id.role !== "vehicle_coordinator") {
         return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Not authorized to perform this operation` })
     }

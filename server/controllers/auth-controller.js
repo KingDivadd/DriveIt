@@ -20,9 +20,9 @@ function uniqueCode() {
 }
 
 const signUp = asyncHandler(async(req, res) => {
-    const { email, password, role, name, phone } = req.body
-    if (!email || !password) {
-        res.status(StatusCodes.BAD_REQUEST).json({ err: "Field cannot be empty" })
+    const { firstName, lastName, email, password, staffId, phone, role, dept, } = req.body
+    if (!firstName || !lastName || !email || !password || !phone || !role) {
+        res.status(500).json({ err: "Field cannot be empty" })
     }
     //now check if a user with that email exist
     const userExist = await User.findOne({ email })
@@ -39,26 +39,33 @@ const signUp = asyncHandler(async(req, res) => {
 
         })
         if (!newUser || !newAuth) {
-            res.status(StatusCodes.BAD_REQUEST).json({ msg: "User creation failed!!!" })
+            return res.status(StatusCodes.BAD_REQUEST).json({ msg: "User creation failed!!!" })
         }
-        res.status(200).json({ msg: "User created successfully", userInfo: newUser, token: generateToken(newUser._id, newUser.name, newUser.email, newUser.role) })
-        sendEmail(`Account Creation`, `Welcome ${name} account created successfully`, email)
+        res.status(200).json({ msg: "User created successfully", userInfo: newUser, token: generateToken(newUser._id, newUser.firstName, newUser.lastName, newUser.role) })
+        sendEmail("Account Createion", { firstName: newUser.firstName, info: "Welcome to FUTA OptiDrive. A platform for managing futa's official fleet of vehicles...", code: '' }, email)
     }
 })
 
-const login = asyncHandler(async(req, res) => {
-        const { email, password } = req.body
+
+const signIn = asyncHandler(async(req, res) => {
+        const { email, staffId, password } = req.body
         if (!email || !password) {
-            res.status(StatusCodes.BAD_REQUEST).json({ msg: "Field cannot be empty" })
+            return res.status(StatusCodes.BAD_REQUEST).json({ msg: "Field cannot be empty" })
         }
-        const findUser = await User.findOne({ email }).populate("vehicle")
+
+        const findUser = await User.findOne({
+            $or: [
+                { email: { $regex: new RegExp(email, 'i') } },
+                { staffId: { $regex: new RegExp(staffId, 'i') } }
+            ]
+        })
         if (!findUser) {
-            res.status(StatusCodes.NOT_FOUND).json({ msg: `User with ${email} not found` })
+            return res.status(StatusCodes.NOT_FOUND).json({ msg: `User with email '${email}' and staff Id '${staffId}' not found` })
         }
         const userId = findUser._id
         const findAuth = await Auth.findOne({ userId })
         if (findAuth && (await findAuth.matchPassword(password))) {
-            res.status(200).json({ userInfo: findUser, token: generateToken({ id: findUser._id, name: findUser.name, email: findUser.email, role: findUser.role, pic: findUser.pic }) })
+            res.status(200).json({ userInfo: findUser, token: generateToken(findUser._id, findUser.firstName, findUser.lastName, findUser.role, findUser.pic) })
         } else {
             res.status(500).json({ msg: "Incorrect password, check password and try again later" })
         }
@@ -70,13 +77,15 @@ const recoveryCode = asyncHandler(async(req, res) => {
         // first check if the email exist
     const verifyEmail = await User.findOne({ email })
     if (!verifyEmail) {
-        res.status(400).json({ msg: `${email} is not a registered email, check email and try again...` })
+        return res.status(400).json({ msg: `${email} is not a registered email, check email and try again...` })
     }
     // generatiing a new code for users
     let genCode = uniqueCode()
     const userAuth = await Auth.findOneAndUpdate({ userId: verifyEmail._id }, { uniqueCode: genCode }, { new: true, runValidators: true }).select('userId uniqueCode')
-    sendEmail("DrivIt-confirmation", `Hi ${verifyEmail.name}, Here's your password recovery code ${genCode}`, email)
+    sendEmail("DrivIt-confirmation", { firstName: verifyEmail.firstName, info: "Here's your password recovery code", code: genCode }, email)
     res.status(200).json({ msg: 'Recovery code generated and sent successfylly...', info: userAuth })
+
+
 
 })
 
@@ -85,7 +94,7 @@ const recoveryCodeVerify = asyncHandler(async(req, res) => {
 
     const verifyEmail = await User.findOne({ email })
     if (!verifyEmail) {
-        res.status(400).json({ msg: `${email} is not a registered email, check email and try again...` })
+        return res.status(400).json({ msg: `${email} is not a registered email, check email and try again...` })
     }
     let id = verifyEmail._id
     const userAuth = await Auth.findOne({ userId: id })
@@ -100,8 +109,14 @@ const recoveryCodeVerify = asyncHandler(async(req, res) => {
 // this will work with sending email to the registered email for authentication...
 const recoverPassword = asyncHandler(async(req, res) => {
     const { email, password } = req.body
-        //hash the entered password
+    if (!email || !password) {
+        return res.status(500).json({ err: `Error... Field cannot be empty!!!` })
+    }
+    //hash the entered password
     const findUser = await User.findOne({ email })
+    if (!findUser) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... User with email '${email}' not found!!!` })
+    }
     const userId = findUser._id
     if (findUser) {
         const salt = await bcrypt.genSalt(10)
@@ -111,11 +126,11 @@ const recoverPassword = asyncHandler(async(req, res) => {
             res.status(500).json({ msg: "Password not changed successfully" })
         }
         res.status(200).json({ msg: "Password updated successfully", userInfo: findAuth })
-        sendEmail("Password Recovery", "Password recovered successfully", email)
+        sendEmail("Password Recovery", { firstName: findUser.firstName, info: "Password updated successfully", code: '' }, email)
     } else {
         res.status(500).json({ msg: `User info with email ${email} not found` })
     }
 
 })
 
-module.exports = { signUp, login, recoverPassword, recoveryCode, recoveryCodeVerify }
+module.exports = { signUp, signIn, recoverPassword, recoveryCode, recoveryCodeVerify }

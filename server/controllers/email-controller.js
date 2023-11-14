@@ -9,6 +9,14 @@ const sendEmail = (subject, note, email) => {
         }
     });
 
+    const htmlContent = `
+    <html> 
+        <body>
+            <h4> Hi ${note.firstName} </h4>
+            <h3> ${note.info} <h2> ${note.code} </h2> </h3>
+        </body>
+    </html>
+    `
     const mailOptions = {
         from: {
             name: "FUTA Fleet Monitor",
@@ -16,6 +24,7 @@ const sendEmail = (subject, note, email) => {
         },
         to: `${email}`,
         subject: `${subject}`,
+        html: htmlContent,
         text: `${note}`
     };
 

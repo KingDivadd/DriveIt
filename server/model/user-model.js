@@ -1,8 +1,10 @@
 const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({
-    name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, trim: true },
+    firstName: { type: String, required: true, trim: true },
+    lastName: { type: String, required: true, trim: true },
+    email: { type: String, required: true, trim: true, unique: true },
+    staffId: { type: String, required: true, trim: true, unique: true },
     phone: { type: Number, trim: true },
     role: { type: String, enum: ['driver', 'vehicle_asignee', 'vehicle_coordinator', 'maintenance personnel'] },
     driver: { type: mongoose.Types.ObjectId, ref: "User" },
