@@ -97,7 +97,7 @@ app.use("/api/image", imageRoute)
 
 // Errors
 app.use(notFoundMiddleWare)
-    // app.use(errorHandlerMiddleWare)
+app.use(errorHandlerMiddleWare)
 
 
 // running the app

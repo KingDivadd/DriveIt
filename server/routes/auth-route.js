@@ -5,7 +5,7 @@ const { signUp, signIn, recoverPassword, recoveryCode, recoveryCodeVerify } = re
 
 router.route("/signup").post(signUp)
 router.route("/login").post(signIn)
-router.route("/recover-password").post(recoverPassword)
+router.route("/recover-password").patch(recoverPassword)
 router.route("/password-recovery-code").post(recoveryCode)
 router.route("/recovery-code-verify").post(recoveryCodeVerify)
 

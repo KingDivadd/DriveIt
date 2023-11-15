@@ -66,11 +66,11 @@ const filterUsers = asyncHandler(async(req, res) => {
 })
 
 const updateUserInfo = asyncHandler(async(req, res) => {
-    const { id: user_id } = req.params
-    const { firstName, lastName, staffId, phone, pic } = req.body
+    const { user_id, firstName, lastName, staffId, phone, pic } = req.body
     if (user_id !== req.info.id.id) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Not Authorized to make changes` })
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... You're only allowed to make changes to your accout!!!` })
     }
+
     const update = {}
     if (firstName.trim() !== '') {
         update.firstName = firstName.trim()
@@ -155,76 +155,10 @@ const removeDriver = asyncHandler(async(req, res) => {
     res.status(StatusCodes.OK).json({ msg: `Driver removed successfully`, assigneeInfo: removeDriver })
 })
 
-
-const assignVehicleToDriver = asyncHandler(async(req, res) => {
-    const { id: user_id } = req.params
-    const { vehicle_id } = req.body
-    if (req.info.id.role !== "vehicle_coordinator") {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Not authorized to perform this operation` })
-    }
-    // new check if vehicle_id exist
-    const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
-    if (!vehicleExist) {
-        return res.status(StatusCodes.NOT_FOUND).json({ err: `Vehicle with ID ${vehicle_id} not found` })
-    }
-    // If found add to the list and make sure it doesn't exist trice.
-    const user = await User.findOne({ _id: user_id })
-    const vehicle = user.vehicle
-    if (vehicle.includes(vehicle_id)) {
-        return res.status(500).json({ err: `Error... Vehicle is already added to ${user.name}` })
-    }
-    // If it doesn't exist add to the list
-    vehicle.push(vehicle_id)
-    const updateUser = await User.findOneAndUpdate({ _id: user_id }, { vehicle }, { new: true, runValidators: true })
-    if (!updateUser) {
-        return res.status(500).json({ err: `Error... Unable to add vehicle to ${user.name}` })
-    }
-    // now add the user_id to the vehicle model
-    const editVehicle = await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { added_to: user_id }, { new: true, runValidators: true })
-
-    res.status(StatusCodes.OK).json({ userInfo: updateUser })
-
-})
 const removeUser = asyncHandler(async(req, res) => {
-    const { id: user_id } = req.params
-
-    // the vehicle assignee should be able to remove drivers assigned to them
-
-    const asignee = await User.findOne({ _id: req.info.id.id })
-    if (asignee.driver && asignee.driver === user_id) {
-        const deleteUser = await User.findOneAndDelete({ _id: asignee.driver })
-        if (!deleteUser) {
-            return res.status(500).json({ err: `Error... Unable to delete User!!!` })
-        }
-        const deleteUserAuth = await Auth.findOne({ userId: asignee.driver })
-        if (!deleteUserAuth) {
-            return res.status(500).json({ err: `Error... Unable to delete User Auth!!!` })
-        }
-        res.status(StatusCodes.OK).json({ msg: `User with id ${asignee.driver} deleted successfully` })
-    } else {
-        res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Not AUTHORIZED to delete user` })
-    }
-    // the vehicle-coordinator should be able to delet drivers
-    if (req.info.id.role === 'vehicle_coordinator') {
-        const getUserInfo = await User.findOne({ _id: user_id })
-        if (!getUserInfo) {
-            return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... user with id ${user_id} not found` })
-        }
-        // now ensure that the vehicle-coordinator only deletes drivers
-        if (getUserInfo.role !== 'driver') {
-            return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Not AUTHORIZED to remove user..` })
-        }
-        const deleteUser = await User.findOneAndDelete({ _id: user_id })
-        if (!deleteUser) {
-            return res.status(500).json({ err: `Error... Unable to delete User!!!` })
-        }
-        const deleteUserAuth = await Auth.findOne({ userId: asignee.driver })
-        if (!deleteUserAuth) {
-            return res.status(500).json({ err: `Error... Unable to delete User Auth!!!` })
-        }
-        res.status(StatusCodes.OK).json({ msg: `User with id ${user_id} deleted successfully` })
-    }
-
+    const { user_id } = req.body
+        // the vehicle assignee should be able to remove drivers assigned to them
+    res.send({ msg: 'Working on deleting user...' })
 })
 
-module.exports = { editPic, getUsers, updateUserInfo, allUsers, assignDriver, removeDriver, oneUser, filterUsers, removeUser, assignVehicleToDriver }
+module.exports = { editPic, getUsers, updateUserInfo, allUsers, assignDriver, removeDriver, oneUser, filterUsers, removeUser }

@@ -20,7 +20,7 @@ function uniqueCode() {
 }
 
 const signUp = asyncHandler(async(req, res) => {
-    const { firstName, lastName, email, password, staffId, phone, role, dept, } = req.body
+    const { firstName, lastName, email, password, staffId, phone, role, dept, pic } = req.body
     if (!firstName || !lastName || !email || !password || !phone || !role) {
         res.status(500).json({ err: "Field cannot be empty" })
     }
@@ -28,22 +28,21 @@ const signUp = asyncHandler(async(req, res) => {
     const userExist = await User.findOne({ email })
     if (userExist) {
         res.status(StatusCodes.BAD_REQUEST).json({ err: "User with email already exist" })
-    } else {
-        //save the new user into the db
-        const newUser = await User.create(req.body)
-            //save to auth collection
-        const newAuth = await Auth.create({
-            userId: newUser._id,
-            password: password,
-            uniqueCode: uniqueCode()
-
-        })
-        if (!newUser || !newAuth) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ msg: "User creation failed!!!" })
-        }
-        res.status(200).json({ msg: "User created successfully", userInfo: newUser, token: generateToken({ id: newUser._id, firstName: newUser.firstName, lastName: newUser.lastName, role: newUser.role, pic: newUser.pic }) })
-        sendEmail("Account Createion", { firstName: newUser.firstName, info: "Welcome to FUTA OptiDrive. A platform for managing futa's official fleet of vehicles...", code: '' }, email)
     }
+    //save the new user into the db
+    const newUser = await User.create(req.body)
+        //save to auth collection
+    const newAuth = await Auth.create({
+        userId: newUser._id,
+        password: password,
+        uniqueCode: uniqueCode()
+
+    })
+    if (!newUser || !newAuth) {
+        return res.status(StatusCodes.BAD_REQUEST).json({ msg: "User creation failed!!!" })
+    }
+    res.status(200).json({ msg: "User created successfully", userInfo: newUser, token: generateToken({ id: newUser._id, firstName: newUser.firstName, lastName: newUser.lastName, role: newUser.role, pic: newUser.pic }) })
+    sendEmail("Account Createion", { firstName: newUser.firstName, info: "Welcome to FUTA OptiDrive. A platform for managing futa's official fleet of vehicles...", code: '' }, email)
 })
 
 
