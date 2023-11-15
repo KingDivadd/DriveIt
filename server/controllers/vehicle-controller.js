@@ -137,6 +137,9 @@ const assignVehicle = asyncHandler(async(req, res) => {
 // deassign a vehicle from all assignees
 const deassignVehicle = asyncHandler(async(req, res) => {
     const { vehicle_id } = req.body
+    if (!vehicle_id) {
+        return res.status(500).json({ err: `Please provide the vehicle's ID!!!` })
+    }
     if (req.info.id.role !== "vehicle_coordinator") {
         return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Not Authorized to perfom this operation!!!` })
     }

@@ -17,6 +17,11 @@ const allUsers = asyncHandler(async(req, res) => {
     res.status(200).json({ nbHit: allUser.length, users: users })
 })
 
+const getUsers = asyncHandler(async(req, res) => {
+    const users = await User.find({})
+    res.status(200).json({ nbHit: users.length, users: users })
+})
+
 const oneUser = asyncHandler(async(req, res) => {
     const users = await User.find({})
     if (!users) {
@@ -222,4 +227,4 @@ const removeUser = asyncHandler(async(req, res) => {
 
 })
 
-module.exports = { editPic, updateUserInfo, allUsers, assignDriver, removeDriver, oneUser, filterUsers, removeUser, assignVehicleToDriver }
+module.exports = { editPic, getUsers, updateUserInfo, allUsers, assignDriver, removeDriver, oneUser, filterUsers, removeUser, assignVehicleToDriver }
