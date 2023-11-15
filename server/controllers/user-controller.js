@@ -62,7 +62,7 @@ const filterUsers = asyncHandler(async(req, res) => {
 
 const updateUserInfo = asyncHandler(async(req, res) => {
     const { id: user_id } = req.params
-    const { firstName, lastName, staffId, phone, } = req.body
+    const { firstName, lastName, staffId, phone, pic } = req.body
     if (user_id !== req.info.id.id) {
         return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Not Authorized to make changes` })
     }
@@ -79,9 +79,9 @@ const updateUserInfo = asyncHandler(async(req, res) => {
     if (phone.trim() !== '') {
         update.phone = phone.trim()
     }
-    // if (pic.trim() !== ''){
-    //     update.pic = pic.trim()
-    // }
+    if (pic.trim() !== '') {
+        update.pic = pic.trim()
+    }
     const updateInfo = await User.findOneAndUpdate({ _id: req.info.id.id }, { $set: update }, { new: true, runValidators: true })
     if (!updateInfo) {
         return res.status(500).json({ err: `Error... unable to update user info!!!` })

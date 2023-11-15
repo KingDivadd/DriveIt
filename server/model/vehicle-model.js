@@ -5,8 +5,7 @@ const vehicleSchema = new mongoose.Schema({
     plate_no: { type: String, required: true, unique: true, trim: true }, // this is unique
     current_millage: { type: Number, required: true, trim: true }, // in the future this is to be added autom...
     engine_no: { type: String, required: true, trim: true },
-    driver: [{ type: mongoose.Types.ObjectId, ref: "User" }],
-    asigned_to: { type: mongoose.Types.ObjectId, ref: "User" },
+    asigned_to: [{ type: mongoose.Types.ObjectId, ref: "User" }],
     added_by: { type: mongoose.Types.ObjectId, ref: "User" },
     current_state: [{ type: String, trim: true }],
     vehicle_type: { type: String, enum: ['bus', 'car'], required: true },
