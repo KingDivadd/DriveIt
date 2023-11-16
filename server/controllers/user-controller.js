@@ -158,7 +158,17 @@ const removeDriver = asyncHandler(async(req, res) => {
 const removeUser = asyncHandler(async(req, res) => {
     const { user_id } = req.body
         // the vehicle assignee should be able to remove drivers assigned to them
-    res.send({ msg: 'Working on deleting user...' })
+    return res.send({ msg: `Work in progress...` })
+    if (req.info.id.role !== "vehicle_coordinator") {
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... You're not authorized to perform this operation` })
+    }
+    // check if the user still exist
+    const userExist = await User.findOne({ _id: user_id })
+    if (!userExist) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... User with ID ${user_id} not found!!!` })
+    }
+    const deleteUser = await User.findOneAndDelete({ _id: user_id })
+    res.status(StatusCodes.OK).json({ msg: `${deleteUser.lastName} ${deleteUser.firstName} has been deleted successfully!!!` })
 })
 
 module.exports = { editPic, getUsers, updateUserInfo, allUsers, assignDriver, removeDriver, oneUser, filterUsers, removeUser }
