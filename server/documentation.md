@@ -7,14 +7,14 @@
 
 2. Available API Endpoints:
 
-   1. Authenticaton
+   1. Authenticaton Schema
 
       1. signup [ POST request] => /api/auth/signup
          ## Required Info
          1. lastName 2. firstName 3. email 4. phone 5.role => ['driver', 'vehicle_asignee', 'vehicle_coordinator', 'maintenance_personnel'] 6. staffId 7. pic 8. password
       2. login [ POST request] => /api/auth/login
          ## Required Info
-         1. email / staffId 2. password
+         1. email_staffId 2. password
       3. Password recovery code [ POST request] => /api/auth/password-recovery-code
          ## Required Info
          1. email
@@ -50,6 +50,20 @@
          ## Required Info
          1. Bearer token for authorization [so that only user logged in as ''vehicle_coordinator' can perform operation]
          2. assignee_id [we are woking on the assumption that only a driver is assigned to an assignee]
+
+   3. vehicle Schema
+
+      1. Add a new Vehicle [POST request] => /api/vehicle/add-vehicle
+         ## Required Info
+         1. plate_no, 2. engine_no, 3. vehicle_type ['bus', 'car'], 4. brand, 5. current_millage
+         2. Bearer token for authorization [so that only user logged in as 'vehicle_coordinator' can perform the vehicle adding operation]
+      2. Get all vehicles [GET request] => /api/vehicle/all-vehicles/
+         ## Required Info
+         1. Bearer token
+      3. Admin Update Vehicle Info [PATCH request] => /api/vehicle/all-vehicles/
+         ## Required Info
+         1. Bearer token for authorization [so that only user logged in as 'vehicle_coordinator' can perform the vehicle adding operation]
+         2. 1. vehicle_id, 2. brand, 3. plate_no, 4. vehicle_type, 5. current_millage, 6. engine_no, current_state, department
 
 3. Data Formats:
 

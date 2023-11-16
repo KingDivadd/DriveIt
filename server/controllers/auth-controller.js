@@ -49,7 +49,7 @@ const signUp = asyncHandler(async(req, res) => {
 const signIn = asyncHandler(async(req, res) => {
         const { email_staffId, password } = req.body
         if (!email_staffId || !password) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ err: "Error... Please provide your email/staffId and password" })
+            return res.status(StatusCodes.BAD_REQUEST).json({ err: "Error... Please provide your email / staffId and password" })
         }
 
         const findUser = await User.findOne({

@@ -7,7 +7,6 @@ const sendEmail = require("./email-controller")
 
 // createing a vehicle instance
 const addVehicle = asyncHandler(async(req, res) => {
-    // console.log(req.info.role, req.info.id)
     const { plate_no, engine_no, current_millage, department, vehicle_type, brand } = req.body
 
     if (req.info.id.role !== "vehicle_coordinator") {
@@ -17,22 +16,20 @@ const addVehicle = asyncHandler(async(req, res) => {
         res.status(500).json({ err: "Please enter provide all vehicle information!!!" })
     }
     // check if a vehicle with the entered plate number exist
-    const query = {};
+    const query = {
+        $or: [
+            { plate_no: { $regex: new RegExp(plate_no, 'i') } },
+            { engine_no: { $regex: new RegExp(engine_no, 'i') } }
+        ]
+    };
 
-    if (plate_no) {
-        query.plate_no = { $regex: new RegExp(plate_no, 'i') };
-    }
-    if (engine_no) {
-        query.engine_no = { $regex: new RegExp(engine_no, 'i') };
-    }
     const vehicleExist = await Vehicle.find(query)
-    if (vehicleExist.length > 0) {
+    if (vehicleExist.length) {
         return res.status(500).json({ err: `Vehicle with Plate NO. ${plate_no} or ENGINE NO ${engine_no} already exist` })
     }
-
     req.body.added_by = req.info.id.id
     const newVehicle = await Vehicle.create(req.body)
-    res.status(StatusCodes.CREATED).json({ new_Vehicle: newVehicle })
+    res.status(StatusCodes.CREATED).json({ msg: `A new vehicle with plate number ${plate_no} has been added to the system`, new_Vehicle: newVehicle })
 
 })
 
@@ -47,8 +44,7 @@ const getAllVehicles = asyncHandler(async(req, res) => {
 
 // Update vehicle infomation
 const adminUpdateVehicleInfo = asyncHandler(async(req, res) => {
-    const { id: vehicle_id } = req.params
-    const { brand, plate_no, vehicle_type, current_millage, engine_no, current_state, department } = req.body
+    const { vehicle_id, brand, plate_no, vehicle_type, current_millage, engine_no, current_state, department } = req.body
     if (req.info.id.role !== "vehicle_coordinator") {
         return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... You are unauthorized to perform this operation!!!` })
     }
@@ -93,7 +89,29 @@ const adminUpdateVehicleInfo = asyncHandler(async(req, res) => {
 
     const newVehicleInfo = await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { $set: update }, { new: true, runValidators: true })
 
-    res.status(StatusCodes.OK).json({ msg: "Vehicle Info updated successfully", newInfo: newVehicleInfo })
+    res.status(StatusCodes.OK).json({ msg: "Vehicle Info updated successfully", newVehicleInfo: newVehicleInfo })
+})
+
+// this allows anyone who have access to a vehicle to make changes
+const updateVehicleInfo = asyncHandler(async(req, res) => {
+    const { vehicle_id, current_millage, current_state, maint_info, daily_log } = req.body
+        //make sure if the user is not a vehicle_coordinator, he has access to the vehicle
+    const vehicleAccess = await Vehicle.findOne({ _id: vehicle_id })
+    if (!vehicle_id) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error.... Vehicle with ID ${vehicle_id} not found!!!` })
+    }
+    const assigned_to = vehicleAccess.assigned_to
+    if (assigned_to.length = 0) {
+        // then, only the vehicle coordinator is allowed to make such changes
+    }
+    // now let's ensure only users [vehicle_assignee, maintenance_personnel, and their assigned driver] with access with to the 
+    const loggedInUser = await User.findOne({ _id: req.info.id.id })
+    const driverPresent = loggedInUser.driver
+    if (!assigned_to.includes(req.info.id.id) || driverPresent !== req.info.id.id) {
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Only users and asigned drivers with access to the vehicle can make such changes!!!` })
+    }
+
+    if (req.info.id.role !== 'vehicle_coordinator' || req.info.id.id) {}
 })
 
 // assign a vehicle to an assignee
