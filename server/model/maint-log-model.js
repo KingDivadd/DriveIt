@@ -9,4 +9,4 @@ const maintenanceSchema = new mongoose.Schema({
     add_desc: [{ type: String, trim: true, required: true }],
 }, { timestamps: true })
 
-module.exports = mongoose.model("Maintenance_Record", maintenanceSchema)
+module.exports = mongoose.model("Maintenance_Log", maintenanceSchema)

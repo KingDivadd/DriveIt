@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler')
-const Maint = require('../model/maint-model')
+const Maint = require('../model/maint-log-model')
 const Vehicle = require("../model/vehicle-model")
 
 // create a new maintenance log

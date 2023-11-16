@@ -11,10 +11,10 @@ const session = require('express-session')
 const authRoute = require('./routes/auth-route')
 const userRoute = require("./routes/user-route")
 const vehicleRoute = require("./routes/vehicle-route")
-const maintRoute = require("./routes/maint-route")
+const maintLogRoute = require("./routes/maint-log-route")
 const locationRoute = require("./routes/location-route")
 const imageRoute = require("./routes/image-route")
-const dailyLog = require("./routes/daily-log-route")
+const dailyLogRoute = require("./routes/daily-log-route")
 const notFoundMiddleWare = require("./middleware/not-found-middleware")
 const errorHandlerMiddleWare = require("./middleware/error-handler-middleware")
 
@@ -60,9 +60,9 @@ io.on("connection", (socket) => {
 app.use("/api/auth", authRoute)
 app.use("/api/user", userRoute)
 app.use("/api/vehicle", vehicleRoute)
-app.use("/api/maint", maintRoute)
+app.use("/api/maint-log", maintLogRoute)
 app.use("/api/location", locationRoute)
-app.use("/api/driver-log", dailyLog)
+app.use("/api/driver-log", dailyLogRoute)
 
 //----- practicing google auth
 

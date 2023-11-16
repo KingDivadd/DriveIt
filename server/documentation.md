@@ -60,10 +60,14 @@
       2. Get all vehicles [GET request] => /api/vehicle/all-vehicles/
          ## Required Info
          1. Bearer token
-      3. Admin Update Vehicle Info [PATCH request] => /api/vehicle/all-vehicles/
+      3. Admin Update Vehicle Info [PATCH request] => /api/admin-update-vehicle-info
          ## Required Info
          1. Bearer token for authorization [so that only user logged in as 'vehicle_coordinator' can perform the vehicle adding operation]
          2. 1. vehicle_id, 2. brand, 3. plate_no, 4. vehicle_type, 5. current_millage, 6. engine_no, current_state, department
+      4. Update Vehicle Info [PATCH request] => /api/update-vehicle-info
+         ## Required Info
+         1. Bearer token for authorization [to ensure only logged in users and their drivers (if any) can make changes to the vehicle assiged to them (loggedInUser)]
+         2. ##### work in progress
 
 3. Data Formats:
 

@@ -10,7 +10,7 @@ const vehicleSchema = new mongoose.Schema({
     current_state: [{ type: String, trim: true }],
     vehicle_type: { type: String, enum: ['bus', 'car'], required: true },
     department: [{ type: String, enum: ['SEET', 'SAAT', 'SEMS', 'SOS', 'SHIT'] }],
-    maint_info: [{ type: mongoose.Types.ObjectId, ref: "Maintenance_Record" }],
+    maint_info: [{ type: mongoose.Types.ObjectId, ref: "Maintenance_Log" }],
     daily_log: [{ type: mongoose.Types.ObjectId, ref: "Daily_Log" }],
     location: { type: mongoose.Types.ObjectId, ref: "Location" }
 }, { timestamps: true })

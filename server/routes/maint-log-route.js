@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { newMaintLog, editMaintLog, allMaintLog, vehicleMaintLog } = require('../controllers/maint-controller')
+const { newMaintLog, editMaintLog, allMaintLog, vehicleMaintLog } = require('../controllers/maint-log-controller')
 const tokenDecoder = require("../middleware/auth-middleware")
 
 router.route("/all-maint-log").get(allMaintLog)

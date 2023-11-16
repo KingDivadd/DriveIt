@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler')
 const Vehicle = require('../model/vehicle-model')
 const User = require('../model/user-model')
+const Maintenance_Log = require('../model/maint-log-model')
 const generateToken = require("../config/generateToken")
 const { StatusCodes } = require("http-status-codes")
 const sendEmail = require("./email-controller")
@@ -92,8 +93,140 @@ const adminUpdateVehicleInfo = asyncHandler(async(req, res) => {
     res.status(StatusCodes.OK).json({ msg: "Vehicle Info updated successfully", newVehicleInfo: newVehicleInfo })
 })
 
+// Vehicle maintenance log to be access only by the maintenance personnel
+const createVehicleMaintLog = asyncHandler(async(req, res) => {
+    const { vehicle_id, maint_type, cost, add_desc, maint_sub, current_state } = req.body
+    if (req.info.id.role !== 'maintenance_personnel') {
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... only a maintenance personnel is authorized to perfom this operation!!!` })
+    }
+    if (!vehicle_id) {
+        return res.status(500).json({ err: `Error... Please select a vehicle by providing it's ID!!!` })
+    }
+    const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
+    if (!vehicleExist) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Vehicle with ID ${vehicle_id} not found!!!` })
+    }
+    if (!maint_type || !maint_sub || !add_desc) {
+        return res.status(500).json({ err: `Error... Please fill all fields!!!` })
+    }
+    const maintLog = {}
+    if (cost.trim !== '') {
+        maintLog.cost = cost.trim()
+    }
+    if (current_state.trim !== '') {
+        maintLog.current_state = current_state.trim()
+    }
+
+    maintLog.vehicle = vehicle_id
+    maintLog.maint_type = maint_type
+    maintLog.maint_sub = maint_sub
+    maintLog.maint_personnel = req.info.id.id
+    maintLog.add_desc = add_desc
+
+    // now create the maintenance log first
+    const newMaintLog = await Maintenance_Log.create({ maintLog })
+    if (!newMaintLog) {
+        return res.status(500).json({ err: `Error... Unable to create maint log for vehicle with ID of ${vehicle_id}` })
+    }
+    // now add the log to the vehicle model
+    const maint_info = vehicleExist.maint_info
+    maint_info.push(newMaintLog)
+    const addVehicleMaintLog = await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { maint_info }, { new: true, runValidators: true })
+    if (!addVehicleMaintLog) {
+        return res.status(500).json({ err: `Error... Unable to add maintenance log to vehicle!!!` })
+    }
+    res.status(StatusCodes.OK).json({ msg: `Maintenance log created and added to vehicle successfully...`, newVehicleInfo: addVehicleMaintLog })
+
+})
+
+const editVehicleMaintLog = asyncHandler(async(req, res) => {
+    const { vehicle_id, maint_log_id, maint_type, maint_sub, cost, add_desc } = req.body
+    if (req.info.id.role !== 'maintenance_personnel') {
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Only Maintenance Personnel can make changes to maintenance logs!!!` })
+    }
+    const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
+    if (!vehicleExist) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Vehicle with ID ${vehicle_id} not found!!!` })
+    }
+    const maint_info = vehicleExist.maint_info
+    if (!maint_info.includes(maint_log_id)) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Maintenane log not found in vehicle model!!!` })
+    }
+    const maint_logExist = await Maintenance_Log.findOne({ _id: maint_log_id })
+    if (!maint_logExist) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Maintenence log with ID ${maint_log_id} not found!!!` })
+    }
+    // now we've established that vehicle and maint_log exist and the vehicle contains the maint_log
+    // let us now update the log
+    const update = {}
+    if (maint_type.trim() !== '') {
+        update.maint_type = maint_type.trim()
+    }
+    if (maint_sub.trim() !== '') {
+        update.maint_sub = maint_sub.trim()
+    }
+    if (cost.trim() !== '') {
+        update.cost = cost.trim()
+    }
+    if (add_desc.trim() !== '') {
+        update.add_desc = add_desc.trim()
+    }
+    const updateLog = await Maintenance_Log.findOneAndUpdate({ _id: maint_log_id }, { $set: update }, { new: true, runValidators: true })
+
+    const updatedVehicleInfo = await Vehicle.findOne({ _id: vehicle_id }).populate("maint_info")
+
+    res.status(StatusCodes.OK).json({ msg: `Vehicle with ID ${vehicle_id} maintenance log updated successfully`, newVehicleInfo: updatedVehicleInfo })
+})
+
+// I need more information about the driver's log
+const createDailyDriverLog = asyncHandler(async(req, res) => {
+    const { vehicle_id, maint_type, cost, add_desc, maint_sub, current_state } = req.body
+    if (req.info.id.role !== 'maintenance_personnel') {
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... only a maintenance personnel is authorized to perfom this operation!!!` })
+    }
+    if (!vehicle_id) {
+        return res.status(500).json({ err: `Error... Please select a vehicle by providing it's ID!!!` })
+    }
+    const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
+    if (!vehicleExist) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Vehicle with ID ${vehicle_id} not found!!!` })
+    }
+    if (!maint_type || !maint_sub || !add_desc) {
+        return res.status(500).json({ err: `Error... Please fill all fields!!!` })
+    }
+    const maintLog = {}
+    if (cost.trim !== '') {
+        maintLog.cost = cost.trim()
+    }
+    if (current_state.trim !== '') {
+        maintLog.current_state = current_state.trim()
+    }
+
+    maintLog.vehicle = vehicle_id
+    maintLog.maint_type = maint_type
+    maintLog.maint_sub = maint_sub
+    maintLog.maint_personnel = req.info.id.id
+    maintLog.add_desc = add_desc
+
+    // now create the maintenance log first
+    const newMaintLog = await Maintenance_Log.create({ maintLog })
+    if (!newMaintLog) {
+        return res.status(500).json({ err: `Error... Unable to create maint log for vehicle with ID of ${vehicle_id}` })
+    }
+    // now add the log to the vehicle model
+    const maint_info = vehicleExist.maint_info
+    maint_info.push(newMaintLog)
+    const addVehicleMaintLog = await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { maint_info }, { new: true, runValidators: true })
+    if (!addVehicleMaintLog) {
+        return res.status(500).json({ err: `Error... Unable to add maintenance log to vehicle!!!` })
+    }
+    res.status(StatusCodes.OK).json({ msg: `Maintenance log created and added to vehicle successfully...`, newVehicleInfo: addVehicleMaintLog })
+
+})
+
 // this allows anyone who have access to a vehicle to make changes
 const updateVehicleInfo = asyncHandler(async(req, res) => {
+    // now the maint_info and daily_logs are id
     const { vehicle_id, current_millage, current_state, maint_info, daily_log } = req.body
         //make sure if the user is not a vehicle_coordinator, he has access to the vehicle
     const vehicleAccess = await Vehicle.findOne({ _id: vehicle_id })
@@ -198,4 +331,4 @@ const deleteVehicle = asyncHandler(async(req, res) => {
     res.status(StatusCodes.OK).json({ msg: `Vehicle with ID ${vehicle_id} deleted successfully!!!` })
 })
 
-module.exports = { addVehicle, adminUpdateVehicleInfo, getAllVehicles, deleteVehicle, assignVehicle, deassignVehicle }
+module.exports = { addVehicle, adminUpdateVehicleInfo, getAllVehicles, deleteVehicle, assignVehicle, deassignVehicle, createVehicleMaintLog, editVehicleMaintLog }
