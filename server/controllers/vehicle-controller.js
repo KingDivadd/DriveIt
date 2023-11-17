@@ -131,7 +131,7 @@ const createVehicleMaintLog = asyncHandler(async(req, res) => {
     // now add the log to the vehicle model
     const maint_info = vehicleExist.maint_info
     maint_info.push(newMaintLog)
-    const addVehicleMaintLog = await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { maint_info }, { new: true, runValidators: true })
+    const addVehicleMaintLog = await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { maint_info }, { new: true, runValidators: true }).populate("maint_info")
     if (!addVehicleMaintLog) {
         return res.status(500).json({ err: `Error... Unable to add maintenance log to vehicle!!!` })
     }
@@ -312,6 +312,8 @@ const deassignVehicle = asyncHandler(async(req, res) => {
     }
 
 })
+
+// when deleting vehicle, you are also deleting the maintenece log attached to it, and you are removing the vehicle from any users model/schema.
 
 const deleteVehicle = asyncHandler(async(req, res) => {
     const { vehicle_id } = req.body
