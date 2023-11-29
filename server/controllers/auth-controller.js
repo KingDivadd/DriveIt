@@ -66,7 +66,7 @@ const signIn = asyncHandler(async(req, res) => {
         if (findAuth && (await findAuth.matchPassword(password))) {
             res.status(200).json({ userInfo: findUser, token: generateToken({ id: findUser._id, firstName: findUser.firstName, lastName: findUser.lastName, role: findUser.role, pic: findUser.pic }) })
         } else {
-            res.status(401).json({ msg: "Incorrect password, check password and try again later" })
+            res.status(401).json({ err: "Incorrect password, check password and try again later" })
         }
     })
     // reveryCode
