@@ -11,7 +11,7 @@ const addVehicle = asyncHandler(async(req, res) => {
     const { plate_no, engine_no, current_millage, department, vehicle_type, brand } = req.body
 
     if (req.info.id.role !== "vehicle_coordinator") {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ err: "Error. Not authorized to perform this operation" })
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: "Error. You're not authorized to perform this operation!!!" })
     }
     if (!plate_no || !engine_no || !vehicle_type || !brand || !current_millage) {
         res.status(500).json({ err: "Please enter provide all vehicle information!!!" })
@@ -26,7 +26,7 @@ const addVehicle = asyncHandler(async(req, res) => {
 
     const vehicleExist = await Vehicle.find(query)
     if (vehicleExist.length) {
-        return res.status(500).json({ err: `Vehicle with Plate NO. ${plate_no} or ENGINE NO ${engine_no} already exist` })
+        return res.status(500).json({ err: `Vehicle with Plate NO. ${plate_no} or/and ENGINE NO ${engine_no} already exist!!!` })
     }
     req.body.added_by = req.info.id.id
     const newVehicle = await Vehicle.create(req.body)
@@ -79,13 +79,6 @@ const adminUpdateVehicleInfo = asyncHandler(async(req, res) => {
     if (plate_no.trim() !== '') {
         update.plate_no = plate_no.trim()
     }
-    // const allVehicles = await Vehicle.findOne({ _id: vehicle_id })
-    // if (req.info.id.id in allVehicles.driver || req.info.id.role === "vehicle_coordinator") {
-    //     if (current_state && current_state.length > 0) {
-    //         update.current_state = current_state.map(data => data.trim()).filter(data => data !== '')
-    //     }
-    // }
-
     // The above will be done in the maintenance controller and will be linked to the vehicle
 
     const newVehicleInfo = await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { $set: update }, { new: true, runValidators: true })
