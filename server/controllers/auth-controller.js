@@ -27,7 +27,7 @@ const signUp = asyncHandler(async(req, res) => {
     //now check if a user with that email exist
     const userExist = await User.findOne({ email })
     if (userExist) {
-        res.status(StatusCodes.BAD_REQUEST).json({ err: "User with email already exist" })
+        res.status(StatusCodes.BAD_REQUEST).json({ err: "Error... Email already registered to another user!!!" })
     }
     //save the new user into the db
     const newUser = await User.create(req.body)
@@ -49,7 +49,7 @@ const signUp = asyncHandler(async(req, res) => {
 const signIn = asyncHandler(async(req, res) => {
         const { email_staffId, password } = req.body
         if (!email_staffId || !password) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ err: "Error... Please provide your email / staffId and password" })
+            return res.status(StatusCodes.BAD_REQUEST).json({ err: "Error... Please provide your email / staffId and password!!!" })
         }
 
         const findUser = await User.findOne({
@@ -59,7 +59,7 @@ const signIn = asyncHandler(async(req, res) => {
             ]
         })
         if (!findUser) {
-            return res.status(StatusCodes.NOT_FOUND).json({ err: `User with email / staffId '${email}' not found` })
+            return res.status(StatusCodes.NOT_FOUND).json({ err: `User with email / staffId '${email}' not found!!!` })
         }
         const userId = findUser._id
         const findAuth = await Auth.findOne({ userId })
@@ -76,7 +76,7 @@ const recoveryCode = asyncHandler(async(req, res) => {
         // first check if the email exist
     const verifyEmail = await User.findOne({ email })
     if (!verifyEmail) {
-        return res.status(400).json({ msg: `${email} is not a registered email, check email and try again...` })
+        return res.status(400).json({ err: `${email} is not a registered email, check email and try again!!!` })
     }
     // generatiing a new code for users
     let genCode = uniqueCode()
@@ -93,14 +93,14 @@ const recoveryCodeVerify = asyncHandler(async(req, res) => {
 
     const verifyEmail = await User.findOne({ email })
     if (!verifyEmail) {
-        return res.status(400).json({ err: `${email} is not a registered email, check email and try again...` })
+        return res.status(400).json({ err: `${email} is not a registered email, check email and try again!!!` })
     }
     let id = verifyEmail._id
     const userAuth = await Auth.findOne({ userId: id })
     if (code === userAuth.uniqueCode) {
         res.status(200).json({ msg: 'Correct code provided' })
     } else {
-        res.status(400).json({ err: 'Incorrect recovery code provided' })
+        res.status(400).json({ err: 'Incorrect recovery code provided!!!' })
     }
 
 })
@@ -122,7 +122,7 @@ const recoverPassword = asyncHandler(async(req, res) => {
     const newPassword = await bcrypt.hash(password, salt)
     const findAuth = await Auth.findOneAndUpdate({ userId }, { password: newPassword }, { new: true, runValidator: true }).select("userId uniqueCode")
     if (!findAuth) {
-        res.status(500).json({ msg: "Password not changed successfully" })
+        res.status(500).json({ err: "Error... Password update failed!!!" })
     }
     res.status(200).json({ msg: "Password updated successfully", userInfo: findAuth })
     sendEmail("Password Recovery", { firstName: findUser.firstName, info: "Password updated successfully", code: '' }, email)
