@@ -1,12 +1,12 @@
 const express = require('express')
 const router = express.Router()
-    // const { newMaintLog, editMaintLog, allMaintLog, vehicleMaintLog } = require('../controllers/maint-log-controller')
+const { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog, } = require('../controllers/maint-log-controller')
 const tokenDecoder = require("../middleware/auth-middleware")
 
-// router.route("/all-maint-log").get(allMaintLog)
-// router.route("/vehicle-maint-log").get(vehicleMaintLog)
-// router.route("/new-maint-log/:id").post(tokenDecoder, newMaintLog)
-// router.route("/update-maint-log/:id").put(editMaintLog)
+router.route("/all-maint-log").get(allVehicleMaintLog)
+router.route("/create-vehicle-maint-log").patch(tokenDecoder, createVehicleMaintLog)
+router.route('/edit-vehicle-maint-log').patch(tokenDecoder, editVehicleMaintLog)
+
 
 
 module.exports = router

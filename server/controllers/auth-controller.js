@@ -28,7 +28,7 @@ const signUp = asyncHandler(async(req, res) => {
     const userExist = await User.findOne({
         $or: [
             { email: { $regex: new RegExp(email, 'i') } },
-            { staffId: { $regex: new RexExp(staffId, 'i') } }
+            { staffId: { $regex: new RegExp(staffId, 'i') } }
         ]
     })
     if (userExist) {
