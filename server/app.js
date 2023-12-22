@@ -15,6 +15,7 @@ const maintLogRoute = require("./routes/maint-log-route")
 const locationRoute = require("./routes/location-route")
 const imageRoute = require("./routes/image-route")
 const dailyLogRoute = require("./routes/daily-log-route")
+const notificationRoute = require("./routes/notification-route")
 const notFoundMiddleWare = require("./middleware/not-found-middleware")
 const errorHandlerMiddleWare = require("./middleware/error-handler-middleware")
 
@@ -63,6 +64,7 @@ app.use("/api/vehicle", vehicleRoute)
 app.use("/api/maint-log", maintLogRoute)
 app.use("/api/location", locationRoute)
 app.use("/api/driver-log", dailyLogRoute)
+app.use("/api/notification", notificationRoute)
 
 //----- practicing google auth
 

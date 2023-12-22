@@ -25,9 +25,14 @@ const signUp = asyncHandler(async(req, res) => {
         res.status(500).json({ err: "Field cannot be empty" })
     }
     //now check if a user with that email exist
-    const userExist = await User.findOne({ email })
+    const userExist = await User.findOne({
+        $or: [
+            { email: { $regex: new RegExp(email, 'i') } },
+            { staffId: { $regex: new RexExp(staffId, 'i') } }
+        ]
+    })
     if (userExist) {
-        res.status(StatusCodes.BAD_REQUEST).json({ err: "Error... Email already registered to another user!!!" })
+        return res.status(StatusCodes.BAD_REQUEST).json({ err: "Error... Email / Staff-Id already registered to another user!!!" })
     }
     //save the new user into the db
     const newUser = await User.create(req.body)
@@ -48,6 +53,7 @@ const signUp = asyncHandler(async(req, res) => {
 
 const signIn = asyncHandler(async(req, res) => {
         const { email_staffId, password } = req.body
+
         if (!email_staffId || !password) {
             return res.status(StatusCodes.BAD_REQUEST).json({ err: "Error... Please provide your email / staffId and password!!!" })
         }

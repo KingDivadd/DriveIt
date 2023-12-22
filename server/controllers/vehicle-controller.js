@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler')
 const Vehicle = require('../model/vehicle-model')
 const User = require('../model/user-model')
 const Maintenance_Log = require('../model/maint-log-model')
+const Notification = require("../model/notification-model")
 const generateToken = require("../config/generateToken")
 const { StatusCodes } = require("http-status-codes")
 const sendEmail = require("./email-controller")
@@ -26,10 +27,12 @@ const addVehicle = asyncHandler(async(req, res) => {
 
     const vehicleExist = await Vehicle.find(query)
     if (vehicleExist.length) {
-        return res.status(500).json({ err: `Vehicle with Plate NO. ${plate_no} or/and ENGINE NO ${engine_no} already exist!!!` })
+        return res.status(500).json({ err: `Vehicle with Plate NO. ${plate_no} or (and) ENGINE NO ${engine_no} already exist!!!` })
     }
     req.body.added_by = req.info.id.id
     const newVehicle = await Vehicle.create(req.body)
+        // now crate a notification log for this
+    await Notification.create({ title: "New Vehicle addition", message: `A new vehicle has been added to the institution's fleet. Click here to view vehicle information`, vehicleInfo: newVehicle._id, createdBy: req.info.id.id, access: 'admin' })
     res.status(StatusCodes.CREATED).json({ msg: `A new vehicle with plate number ${plate_no} has been added to the system`, new_Vehicle: newVehicle })
 
 })
@@ -83,6 +86,8 @@ const adminUpdateVehicleInfo = asyncHandler(async(req, res) => {
 
     const newVehicleInfo = await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { $set: update }, { new: true, runValidators: true })
 
+    await Notification.create({ createdBy: req.info.id.id, title: "Updating Vehicle Information", vehicleInfo: newVehicleInfo, message: "Vehicle's information has been updated successfully. Click here to view the vehicle new information.", access: 'admin' })
+
     res.status(StatusCodes.OK).json({ msg: "Vehicle Info updated successfully", newVehicleInfo: newVehicleInfo })
 })
 
@@ -128,6 +133,9 @@ const createVehicleMaintLog = asyncHandler(async(req, res) => {
     if (!addVehicleMaintLog) {
         return res.status(500).json({ err: `Error... Unable to add maintenance log to vehicle!!!` })
     }
+    await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, maintLogInfo: newMaintLog.id, title: "Vehicle Maintenance log.", message: `A new maintenance log has been added to the vehicle vehicle. Click here to view full information.`, access: 'maintenance_personnel' })
+
+    await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, maintLogInfo: newMaintLog.id, title: "Vehicle Maintenance log.", message: `A new maintenance log has been added to your vehicle vehicle. Click here to view full information.`, access: 'vehicle_asignee' })
     res.status(StatusCodes.OK).json({ msg: `Maintenance log created and added to vehicle successfully...`, newVehicleInfo: addVehicleMaintLog })
 
 })
@@ -166,57 +174,17 @@ const editVehicleMaintLog = asyncHandler(async(req, res) => {
     }
     const updateLog = await Maintenance_Log.findOneAndUpdate({ _id: maint_log_id }, { $set: update }, { new: true, runValidators: true })
 
+    await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, maintLogInfo: maint_log_id, title: "Vehicle Maintenance log.", message: `A maintenance log for a vehicle has been updated successfully. Click here to view full information.`, access: 'maintenance_personnel' })
+
+    await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, maintLogInfo: maint_log_id, title: "Vehicle Maintenance log.", message: `A maintenance log for your vehicle has been updated successfully. Click here to view full information.`, access: 'vehicle_asignee' })
+
     const updatedVehicleInfo = await Vehicle.findOne({ _id: vehicle_id }).populate("maint_info")
 
     res.status(StatusCodes.OK).json({ msg: `Vehicle with ID ${vehicle_id} maintenance log updated successfully`, newVehicleInfo: updatedVehicleInfo })
 })
 
-// I need more information about the driver's log
-const createDailyDriverLog = asyncHandler(async(req, res) => {
-    const { vehicle_id, maint_type, cost, add_desc, maint_sub, current_state } = req.body
-    if (req.info.id.role !== 'maintenance_personnel') {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... only a maintenance personnel is authorized to perfom this operation!!!` })
-    }
-    if (!vehicle_id) {
-        return res.status(500).json({ err: `Error... Please select a vehicle by providing it's ID!!!` })
-    }
-    const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
-    if (!vehicleExist) {
-        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Vehicle with ID ${vehicle_id} not found!!!` })
-    }
-    if (!maint_type || !maint_sub || !add_desc) {
-        return res.status(500).json({ err: `Error... Please fill all fields!!!` })
-    }
-    const maintLog = {}
-    if (cost.trim !== '') {
-        maintLog.cost = cost.trim()
-    }
-    if (current_state.trim !== '') {
-        maintLog.current_state = current_state.trim()
-    }
 
-    maintLog.vehicle = vehicle_id
-    maintLog.maint_type = maint_type
-    maintLog.maint_sub = maint_sub
-    maintLog.maint_personnel = req.info.id.id
-    maintLog.add_desc = add_desc
-
-    // now create the maintenance log first
-    const newMaintLog = await Maintenance_Log.create({ maintLog })
-    if (!newMaintLog) {
-        return res.status(500).json({ err: `Error... Unable to create maint log for vehicle with ID of ${vehicle_id}` })
-    }
-    // now add the log to the vehicle model
-    const maint_info = vehicleExist.maint_info
-    maint_info.push(newMaintLog)
-    const addVehicleMaintLog = await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { maint_info }, { new: true, runValidators: true })
-    if (!addVehicleMaintLog) {
-        return res.status(500).json({ err: `Error... Unable to add maintenance log to vehicle!!!` })
-    }
-    res.status(StatusCodes.OK).json({ msg: `Maintenance log created and added to vehicle successfully...`, newVehicleInfo: addVehicleMaintLog })
-
-})
-
+// might have to remove this later...
 // this allows anyone who have access to a vehicle to make changes
 const updateVehicleInfo = asyncHandler(async(req, res) => {
     // now the maint_info and daily_logs are id
@@ -274,6 +242,10 @@ const assignVehicle = asyncHandler(async(req, res) => {
     if (!assignAssignee) {
         return res.status(500).json({ err: `Error... unable to assign vehicle assignee to the vehicle with id ${vehicle_id}` })
     }
+    // there should be 2 notifications, one for the the assigner and 2. for the assignee.
+    await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, title: "Vehicle Assignment", message: `You have successfully assigned a vehicle to ${assigneeExist.lastName} ${assigneeExist.firstName}. Click here to view full information.`, access: 'admin' })
+
+    await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, title: "Vehicle Assignment", message: `Congratulations, a vehicle has been assigned to you. Click here to view full information.`, access: 'vehicle_asignee' })
     res.status(StatusCodes.OK).json({ msg: `Vehicle assigned to ${assigneeExist.lastName} ${assigneeExist.firstName} successfully`, assigneeInfo: assignVehicle, vehicleInfo: assignAssignee })
 
 })
@@ -299,7 +271,11 @@ const deassignVehicle = asyncHandler(async(req, res) => {
         if (!deleteResult && !clearAssignedTo) {
             return res.status(400).json({ err: `Error removing vehicles form previous assignee!!!` })
         }
-        return res.status(StatusCodes.OK).json({ msg: `Vehicle with ID ${vehicle_id} deassigned successfully`, vehicleInfo: clearAssignedTo })
+        await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, title: "Vehicle Recall", message: `Vehicle with plate no ${vehicleExist.plate_no} has been recalled successfully.`, access: 'admin' })
+
+        await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, title: "Vehicle Recall", message: `Your vehicle has been recalled, a new vehicle is underway`, access: 'vehicle_asignee' })
+
+        return res.status(StatusCodes.OK).json({ msg: `Vehicle with ID ${vehicle_id} recalled successfully`, vehicleInfo: clearAssignedTo })
     } else {
         return res.status(StatusCodes.OK).json({ msg: `Vehicle is current not assigned to any one`, vehicleInfo: ve })
     }
@@ -322,6 +298,7 @@ const deleteVehicle = asyncHandler(async(req, res) => {
         return res.status(500).json({ err: `Error... Unable to delete vehicles!!!` })
     }
     // remove all maint_log associated with the vehicle and remove the vehicle id from everywhere
+    await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, access: 'admin', title: 'Vehicle Deprovisioning', message: `Vehicle with plate no ${vehicleExist.plate_no} has been deleted successfully.`, })
 
     res.status(StatusCodes.OK).json({ msg: `Vehicle with ID ${vehicle_id} deleted successfully!!!` })
 })
