@@ -1,6 +1,8 @@
 const asyncHandler = require('express-async-handler')
+const Notification = require("../model/notification-model")
 
 const newLog = asyncHandler(async(req, res) => {
+
 
 })
 

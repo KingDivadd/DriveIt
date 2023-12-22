@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { editPic, updateUserInfo, getUsers, allUsers, assignDriver, oneUser, filterUsers, removeDriver, removeUser } = require('../controllers/user-controller')
+const { editPic, updateUserInfo, getUsers, allUsers, assignDriver, oneUser, filterUsers, removeDriver, deleteUser } = require('../controllers/user-controller')
 const tokenDecoder = require('../middleware/auth-middleware')
 
 router.route('/all-users').get(tokenDecoder, allUsers)
@@ -11,6 +11,6 @@ router.route('/find-user').post(oneUser)
 router.route('/edit-pic').patch(tokenDecoder, editPic)
 router.route('/assign-driver').patch(tokenDecoder, assignDriver)
 router.route('/remove-driver').patch(tokenDecoder, removeDriver)
-router.route('/delete-user').delete(tokenDecoder, removeUser)
+router.route('/delete-user').delete(tokenDecoder, deleteUser)
 
 module.exports = router

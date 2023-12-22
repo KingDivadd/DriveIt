@@ -3,6 +3,7 @@ const User = require('../model/user-model')
 const Vehicle = require("../model/vehicle-model")
 const { StatusCodes } = require("http-status-codes")
 const sendEmail = require("./email-controller")
+const Notification = require("../model/notification-model")
 
 // this role is restricted to the maintenance personnel and the vehicle coordinators alone
 const allUsers = asyncHandler(async(req, res) => {
@@ -91,6 +92,8 @@ const updateUserInfo = asyncHandler(async(req, res) => {
     if (!updateInfo) {
         return res.status(500).json({ err: `Error... unable to update user info!!!` })
     }
+    await Notification.create({ access: 'vehicle_asignee', createdBy: req.info.id.id, title: 'Profile Update', message: `Your profile was updated successfully.`, })
+
     res.status(StatusCodes.OK).json({ msg: `User info updated successfully`, userInfo: updateInfo })
 })
 
@@ -126,6 +129,10 @@ const assignDriver = asyncHandler(async(req, res) => {
     // now add the driver to the newAssignee
     const newAssignee = await User.findOneAndUpdate({ _id: assignee_id }, { driver: driver_id }, { new: true, runValidators: true })
 
+    await Notification.create({ access: 'admin', staffInfo: driver_id, createdBy: req.info.id.id, title: `Driver Assignment`, message: `A driver, ${driverExist.lastName} has been assined to ${newAssignee.lastName} successfully`, })
+
+    await Notification.create({ access: 'vehicle_asignee', staffInfo: driver_id, createdBy: req.info.id.id, title: `Driver Assignment`, message: `A driver, ${driverExist.lastName} has been assined to you successfully`, })
+
     sendEmail("Driver Assignment", { firstName: newAssignee.firstName, info: `We are pleased to inform you that a driver whose name is below has been assigned to you.`, code: `${driverExist.lastName} ${driverExist.firstName}` }, newAssignee.email)
 
     res.status(StatusCodes.OK).json({ msg: `Driver has been assed to ${newAssignee.firstName} ${newAssignee.lastName} successfully. `, newAssigneeInfo: newAssignee })
@@ -151,24 +158,19 @@ const removeDriver = asyncHandler(async(req, res) => {
     if (!removeDriver) {
         return res.status(500).json({ err: `Error... Unable to remove driver!!!` })
     }
+    await Notification.create({ access: 'admin', createdBy: req.info.id.id, title: `Driver Recall`, message: `${removeDriver.lastName}'s Driver has been recalled successfully.` })
+
+    await Notification.create({ access: 'vehicle_asignee', createdBy: req.info.id.id, title: `Driver Recall`, message: `Your driver has been recalled successfully.` })
+
     sendEmail("Driver Transfer", { firstName: removeDriver.firstName, info: `We regret to inform you that your driver has been removed / transfered.`, code: '' }, removeDriver.email)
     res.status(StatusCodes.OK).json({ msg: `Driver removed successfully`, assigneeInfo: removeDriver })
 })
 
-const removeUser = asyncHandler(async(req, res) => {
+const deleteUser = asyncHandler(async(req, res) => {
     const { user_id } = req.body
-        // the vehicle assignee should be able to remove drivers assigned to them
     return res.send({ msg: `Work in progress...` })
-    if (req.info.id.role !== "vehicle_coordinator") {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... You're not authorized to perform this operation` })
-    }
-    // check if the user still exist
-    const userExist = await User.findOne({ _id: user_id })
-    if (!userExist) {
-        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... User with ID ${user_id} not found!!!` })
-    }
-    const deleteUser = await User.findOneAndDelete({ _id: user_id })
-    res.status(StatusCodes.OK).json({ msg: `${deleteUser.lastName} ${deleteUser.firstName} has been deleted successfully!!!` })
+        // 
+
 })
 
-module.exports = { editPic, getUsers, updateUserInfo, allUsers, assignDriver, removeDriver, oneUser, filterUsers, removeUser }
+module.exports = { editPic, getUsers, updateUserInfo, allUsers, assignDriver, removeDriver, oneUser, filterUsers, deleteUser }
