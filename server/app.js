@@ -6,13 +6,12 @@ const connectDB = require('./config/db')
 const cors = require('cors')
 require('dotenv').config()
 require('colors')
-require('./controllers/google-auth')
 const session = require('express-session')
 const authRoute = require('./routes/auth-route')
 const userRoute = require("./routes/user-route")
 const vehicleRoute = require("./routes/vehicle-route")
 const maintLogRoute = require("./routes/maint-log-route")
-const locationRoute = require("./routes/location-route")
+const { beginTracking } = require("./controllers/location-controller")
 const imageRoute = require("./routes/image-route")
 const dailyLogRoute = require("./routes/daily-log-route")
 const notificationRoute = require("./routes/notification-route")
@@ -62,40 +61,11 @@ app.use("/api/auth", authRoute)
 app.use("/api/user", userRoute)
 app.use("/api/vehicle", vehicleRoute)
 app.use("/api/maint-log", maintLogRoute)
-app.use("/api/location", locationRoute)
+    // app.use("/api/location", locationRoute)
 app.use("/api/driver-log", dailyLogRoute)
 app.use("/api/notification", notificationRoute)
 
-//----- practicing google auth
-
-// const isLoggedIn = (req, res, next) => {
-//     req.user ? next() : res.sendStatus(401)
-// }
-
-// app.get("/google", (req, res) => {
-//     res.send(`<Button> <a href="/auth/google"> Authenticate with Google </a> </Button>`) // this will be a button in the front.
-// })
-// app.get("/home", isLoggedIn, (req, res) => {
-//     console.log(req.user)
-//     res.send(`Hello ${req.user.displayName}`)
-// })
-// app.get('/auth/google', passport.authenticate('google', { scope: ["email", "profile"] }));
-// app.get(`/google/callback`, passport.authenticate('google', { successRedirect: '/home', failureRedirect: '/auth/failure' }))
-
-// app.get(`/auth/failure`, (req, res) => {
-//     res.send("Something went wrong") // should be  a designed page on the frontend.
-// })
-
-// app.get('/logout', (req, res) => {
-//     // req.logout();
-//     req.session.destroy()
-//         // res.send('Goodbye')
-//     res.send(`Goodbye \n <a href="/auth/google"> Login </a>`)
-// })
-
-
-// Image uploads and shit 
-app.use("/api/image", imageRoute)
+beginTracking()
 
 // Errors
 app.use(notFoundMiddleWare)
