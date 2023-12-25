@@ -3,10 +3,12 @@ const mongoose = require('mongoose')
 const dailyLog = new mongoose.Schema({
     vehicle: { type: mongoose.Types.ObjectId, ref: 'Vehicles', required: true },
     startingLocation: { type: String, trim: true, },
-    endingLocatin: { type: String, trim: true, },
-    startingMillage: { type: String, trim: true, },
-    startingMillage: { type: String, trim: true, },
-    enteredBy: { type: mongoose.Types.ObjectId, ref: "User", required: true }
+    endingLocation: { type: String, trim: true, },
+    route: { type: String, trim: true, },
+    startingMileage: { type: String, trim: true, },
+    endingMileage: { type: String, trim: true, },
+    dailyMileage: { type: String, trim: true },
+    addedBy: { type: mongoose.Types.ObjectId, ref: "User", required: true }
 
 }, { timestamps: true })
 

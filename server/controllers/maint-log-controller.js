@@ -21,6 +21,7 @@ const allVehicleMaintLog = asyncHandler(async(req, res) => {
 })
 
 // Vehicle maintenance log to be access only by the maintenance personnel
+// if the maintenance involves servicing/oil change, the service_mileage will be resetted by equating to current_mileage + 5000
 const createVehicleMaintLog = asyncHandler(async(req, res) => {
     const { vehicle_id, maint_type, cost, add_desc, maint_sub, } = req.body
     if (req.info.id.role !== 'maintenance_personnel') {

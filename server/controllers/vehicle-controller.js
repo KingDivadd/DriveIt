@@ -9,12 +9,12 @@ const sendEmail = require("./email-controller")
 
 // createing a vehicle instance
 const addVehicle = asyncHandler(async(req, res) => {
-    const { plate_no, engine_no, current_millage, department, vehicle_type, brand } = req.body
+    const { plate_no, engine_no, current_mileage, department, vehicle_type, brand } = req.body
 
     if (req.info.id.role !== "vehicle_coordinator") {
         return res.status(StatusCodes.UNAUTHORIZED).json({ err: "Error. You're not authorized to perform this operation!!!" })
     }
-    if (!plate_no || !engine_no || !vehicle_type || !brand || !current_millage) {
+    if (!plate_no || !engine_no || !vehicle_type || !brand || !current_mileage) {
         res.status(500).json({ err: "Please enter provide all vehicle information!!!" })
     }
     // check if a vehicle with the entered plate number exist
@@ -30,6 +30,9 @@ const addVehicle = asyncHandler(async(req, res) => {
         return res.status(500).json({ err: `Vehicle with Plate NO. ${plate_no} or (and) ENGINE NO ${engine_no} already exist!!!` })
     }
     req.body.added_by = req.info.id.id
+    const service_mileage = Number(current_mileage) + 5000
+    req.body.service_mileage = service_mileage.toLocaleString()
+    req.body.current_mileage = Number(current_mileage).toLocaleString()
     const newVehicle = await Vehicle.create(req.body)
         // now crate a notification log for this
     await Notification.create({ title: "New Vehicle addition", message: `A new vehicle has been added to the institution's fleet. Click here to view vehicle information`, vehicleInfo: newVehicle._id, createdBy: req.info.id.id, access: 'admin' })
@@ -48,7 +51,7 @@ const getAllVehicles = asyncHandler(async(req, res) => {
 
 // Update vehicle infomation
 const adminUpdateVehicleInfo = asyncHandler(async(req, res) => {
-    const { vehicle_id, brand, plate_no, vehicle_type, current_millage, engine_no, current_state, department } = req.body
+    const { vehicle_id, brand, plate_no, vehicle_type, current_mileage, engine_no, current_state, department } = req.body
     if (req.info.id.role !== "vehicle_coordinator") {
         return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... You are unauthorized to perform this operation!!!` })
     }
@@ -58,8 +61,8 @@ const adminUpdateVehicleInfo = asyncHandler(async(req, res) => {
     }
 
     const update = {}
-    if (current_millage.trim() !== '') {
-        update.current_millage = current_millage.trim()
+    if (current_mileage.trim() !== '') {
+        update.current_mileage = Number(current_mileage.trim()).toLocaleString()
     }
     // engine no => can only be edited by maint personnel
     if (engine_no.trim() !== '') {
@@ -91,14 +94,11 @@ const adminUpdateVehicleInfo = asyncHandler(async(req, res) => {
     res.status(StatusCodes.OK).json({ msg: "Vehicle Info updated successfully", newVehicleInfo: newVehicleInfo })
 })
 
-
-
-
 // might have to remove this later...
 // this allows anyone who have access to a vehicle to make changes
 const updateVehicleInfo = asyncHandler(async(req, res) => {
     // now the maint_info and daily_logs are id
-    const { vehicle_id, current_millage, current_state, maint_info, daily_log } = req.body
+    const { vehicle_id, current_mileage, current_state, maint_info, daily_log } = req.body
         //make sure if the user is not a vehicle_coordinator, he has access to the vehicle
     const vehicleAccess = await Vehicle.findOne({ _id: vehicle_id })
     if (!vehicle_id) {

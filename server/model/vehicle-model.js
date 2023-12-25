@@ -3,7 +3,9 @@ const mongoose = require('mongoose')
 const vehicleSchema = new mongoose.Schema({
     brand: { type: String, required: true, trim: true },
     plate_no: { type: String, required: true, unique: true, trim: true }, // this is unique
-    current_millage: { type: Number, required: true, trim: true }, // in the future this is to be added autom...
+    service_mileage: { type: String, trim: true, default: '00000' }, // this should only be entered manually once
+    current_mileage: { type: String, required: true, trim: true }, // in the future this is to be added autom...
+    daily_mileage: { type: String, trim: true, default: '00000' },
     engine_no: { type: String, required: true, trim: true },
     assigned_to: [{ type: mongoose.Types.ObjectId, ref: "User" }],
     added_by: { type: mongoose.Types.ObjectId, ref: "User" },
