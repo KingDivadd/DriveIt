@@ -49,4 +49,55 @@ const engineOilChange = asyncHandler(async(req, res) => {
 
 })
 
-module.exports = { engineOilChange }
+setTimeout(() => {
+    engineOilChange
+}, 24 * 3600 * 1000);
+
+const genVehicleService = asyncHandler(async(req, res) => {
+    const allVehicles = await Vehicle.find({})
+    allVehicles.foreach(async(data, ind) => {
+        const dailyLogBox = []
+        const dailyLogs = data.daily_log
+        dailyLogs.forEach(async(res, index) => {
+            const fetchDailyMileage = await DailyLog.findOne({ _id: res[index] }).select("dailyMileage")
+            dailyLogBox.push(Number(fetchDailyMileage.replace(/,/g, '')))
+        });
+        const avgDailyMileage = Math.round(dailyLogBox.reduce((a, b) => a + b))
+        const current_mileage = Number(data.current_mileage.replace(/,/g, ''))
+        const service_mileage = Number(data.service_mileage.replace(/,/g, ''))
+
+        if (service_mileage > current_mileage) {
+            const diff = service_mileage - current_mileage
+            const remDays = Math.round(diff / avgDailyMileage)
+            if (remDays <= 10) {
+                // notify to prepare for the gen service
+            }
+        }
+        if (service_mileage === current_mileage) {
+            // also remind user that vehicle is due for service
+        }
+        if (service_mileage < current_mileage) {
+            // remind user that vehicle is past recommended service due date
+        }
+    })
+})
+
+setTimeout(() => {
+    genVehicleService
+}, 24 * 3600 * 1000);
+
+// every 25k - 70k miles
+const routineBrakeInspection = asyncHandler(async(req, res) => {
+
+})
+module.exports = { engineOilChange, genVehicleService, routineBrakeInspection, }
+
+//oil change 5 - 10k = 7.5
+//Tire rotation = 6k - 8k = 7
+//Brake = 25k - 70k = 47.5
+//transmission fluid change = 30k - 60k = 45
+//air filter check = 12k - 15k = 13.5
+//coolant system = 40k - 100k = 70
+//spark plugs = 30k - 100k = 65
+
+// suspension system is predictive in that it is only inspected when observed to be faulty

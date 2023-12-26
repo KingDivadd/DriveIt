@@ -3,6 +3,79 @@ const Maintenance_Log = require('../model/maint-log-model')
 const Vehicle = require("../model/vehicle-model")
 const { StatusCodes } = require('http-status-codes')
 const Notification = require("../model/notification-model")
+const User = require("../model/user-model")
+const PlanMaint = require("../model/plan-maint-model")
+
+//services is an array and concerns is string
+const planMaint = asyncHandler(async(req, res) => {
+    const { vehicle_id, services, concerns } = req.body
+    const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
+    if (!vehicleExist) {
+        return res.status(404).json({ err: `Error... Vehicle not found!!!` })
+    }
+    let auth = false
+    const assignedTo = vehicleExist.assigned_to
+    assignedTo.foreach(async(data, ind) => {
+        if (data === req.info.id.id) {
+            auth = true
+        }
+        const user = await User.findOne({ _id: data })
+        if (user.driver === req.info.id.id) {
+            auth = true
+        }
+    })
+    if (!auth) {
+        return res.status(401).json({ err: `Error... not authorized to plan maintenance!!!` })
+    }
+    if (!services.length || !concerns) {
+        return res.status(500).json({ err: `Error... Please provide necessary informations to plan maintenance!!!` })
+    }
+    req.body.plannedBy = req.info.id.id
+
+    const newPlannedMaint = await PlanMaint.create(req.body)
+
+    await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { $push: { planned_maint_info: newPlannedMaint } }, { new: true, runValidators: true })
+
+    await Notification.create({ title: `New Planned Maintenance`, access: `vehicle_asignee`, createdBy: req.info.id.id, message: `You've successfully created a maintenance plan.`, vehicleInfo: vehicle_id, planMaintInfo: newPlannedMaint._Id })
+
+    await Notification.create({ title: `New Planned Maintenance`, access: `maintenance_personnel`, createdBy: req.info.id.id, message: `A maintenance plan has been created for a vehicle. Click here to know more`, vehicleInfo: vehicle_id, planMaintInfo: newPlannedMaint._id })
+
+    return res.status(200).json({ msg: `Maintenence planned successfully`, planedMaint: newPlannedMaint })
+
+})
+
+const editPlannedMaint = asyncHandler(async(req, res) => {
+    const { planMaintLog, services, concerns } = req.body
+    const planMaintExist = await PlanMaint.findOne({ _id: planMaintLog })
+    if (!planMaintExist) {
+        return res.status(200).json({ err: `Error... Planned Maintenance log not found!!!` })
+    }
+    let update = {}
+    if (services.length) {
+        update.services = services
+    }
+    if (concerns) {
+        update.concerns = concerns
+    }
+    const updatePlanMaint = await PlanMaint.findOneAndUpdate({ _id: planMaintLog }, { update }, { new: true, runValidators: true })
+
+    await Notification.findOneAndUpdate({ planMaintInfo: planMaintLog }, { title: `Updated Planned Maintenance`, message: `You've successfully updated the maintenance plan.`, }, { new: true, runValidators: true })
+
+    await Notification.findOneAndUpdate({ planMaintInfo: planMaintLog }, { title: `Updated Planned Maintenance`, message: `A maintenance plan for a vehicle just got updated. Click here to know more`, }, { new: true, runValidators: true })
+
+    return res.status(200).json({ msg: `Planned Maintenance log updated successfully`, updatedPlanMaint: updatePlanMaint })
+})
+
+const allPlannedMaint = asyncHandler(async(req, res) => {
+    const { vehicle_id } = req.body
+    const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
+    if (!vehicleExist) {
+        return res.status(404).json({ err: `Error... Vehicle not found!!!` })
+    }
+    const allPlannedMaint = await PlanMaint.find({})
+    return res.status(200).json({ nbHit: allPlannedMaint.length, allPlannedMaint: allPlannedMaint })
+
+})
 
 const allVehicleMaintLog = asyncHandler(async(req, res) => {
     const { vehicle_id, maint_type, } = req.body
@@ -107,4 +180,4 @@ const editVehicleMaintLog = asyncHandler(async(req, res) => {
     res.status(StatusCodes.OK).json({ msg: `Vehicle with ID ${vehicle_id} maintenance log updated successfully`, updatedVehicleMaintLog: updateLog })
 })
 
-module.exports = { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog }
+module.exports = { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog, planMaint, editPlannedMaint, allPlannedMaint }
