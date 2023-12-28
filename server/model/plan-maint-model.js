@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require('mongoose')
 
 const planMaintSchema = new mongoose.Schema({
     services: [{ type: String, required: true }],
@@ -6,4 +6,4 @@ const planMaintSchema = new mongoose.Schema({
     plannedBy: { type: mongoose.Types.ObjectId, ref: "User", required: true },
 }, { timestamps: true })
 
-module.exports = mongoose.model(planMaintSchema, "plannedMaint")
+module.exports = mongoose.model("plannedMaint", planMaintSchema)
