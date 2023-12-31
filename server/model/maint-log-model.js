@@ -9,4 +9,13 @@ const maintenanceSchema = new mongoose.Schema({
     add_desc: [{ type: String, trim: true, required: true }],
 }, { timestamps: true })
 
-module.exports = mongoose.model("Maintenance_Log", maintenanceSchema)
+
+const maintSchema = new mongoose.Schema({
+    vehicle: { type: mongoose.Types.ObjectId, ref: "Vehicles", required: true },
+    issues: [{ type: String, required: true, trim: true }],
+    solutions: [{ type: String, trim: true, }],
+    cost: { type: String, trim: true },
+    maint_personnel: { type: mongoose.Types.ObjectId, ref: "Users", requried: true },
+}, { timestamps: true })
+
+module.exports = mongoose.model("Maintenance_Log", maintSchema)

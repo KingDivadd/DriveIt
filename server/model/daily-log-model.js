@@ -8,6 +8,7 @@ const dailyLog = new mongoose.Schema({
     startingMileage: { type: String, trim: true, },
     endingMileage: { type: String, trim: true, },
     dailyMileage: { type: String, trim: true },
+    fuelLevel: { type: String, enum: ["low", "mid", "full"] },
     addedBy: { type: mongoose.Types.ObjectId, ref: "User", required: true }
 
 }, { timestamps: true })

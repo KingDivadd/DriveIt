@@ -1,8 +1,10 @@
 const asyncHandler = require('express-async-handler')
 const Vehicle = require('../model/vehicle-model')
 const User = require('../model/user-model')
+const Daily_Log = require("../model/daily-log-model")
 const Maintenance_Log = require('../model/maint-log-model')
 const Notification = require("../model/notification-model")
+const PlanMaint = require("../model/plan-maint-model")
 const generateToken = require("../config/generateToken")
 const { StatusCodes } = require("http-status-codes")
 const sendEmail = require("./email-controller")
@@ -135,7 +137,11 @@ const assignVehicle = asyncHandler(async(req, res) => {
     if (!assigneeExist) {
         return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... User with ID ${assignee_id} not found!!!` })
     }
+    // make sure the user is not assigned to another vehicle
     const vehicle = assigneeExist.vehicle
+    if (vehicle.length) {
+        return res.status(500).json({ err: `Error... User already assigned to a vehicle!!!` })
+    }
     if (!vehicle.includes(vehicle_id)) {
         vehicle.push(vehicle_id)
     }
@@ -144,7 +150,7 @@ const assignVehicle = asyncHandler(async(req, res) => {
         return res.status(500).json({ err: `Error... unable to assign vehicle to ${lastName}!!!` })
     }
     // now add the assignee id to the vehicle
-    const assigned_to = vehicleExist.asigned_to
+    const assigned_to = vehicleExist.assigned_to
     if (!assigned_to.includes(assignee_id)) {
         assigned_to.push(assignee_id)
     }
@@ -155,7 +161,8 @@ const assignVehicle = asyncHandler(async(req, res) => {
     // there should be 2 notifications, one for the the assigner and 2. for the assignee.
     await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, title: "Vehicle Assignment", message: `You have successfully assigned a vehicle to ${assigneeExist.lastName} ${assigneeExist.firstName}. Click here to view full information.`, access: 'admin' })
 
-    await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, title: "Vehicle Assignment", message: `Congratulations, a vehicle has been assigned to you. Click here to view full information.`, access: 'vehicle_asignee' })
+    await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, title: "Vehicle Assignment", message: `Congratulations, a vehicle has been assigned to you. Click here to view full information.`, access: 'vehicle_assignee' })
+
     res.status(StatusCodes.OK).json({ msg: `Vehicle assigned to ${assigneeExist.lastName} ${assigneeExist.firstName} successfully`, assigneeInfo: assignVehicle, vehicleInfo: assignAssignee })
 
 })
@@ -208,6 +215,29 @@ const deleteVehicle = asyncHandler(async(req, res) => {
         return res.status(500).json({ err: `Error... Unable to delete vehicles!!!` })
     }
     // remove all maint_log associated with the vehicle and remove the vehicle id from everywhere
+    const user = User.find({ vehicle: vehicle_id })
+    if (user.length) {
+        user.forEach(async data => {
+            await User.updateMany({ _id: data._id }, { $pull: { vehicle: vehicle_id } }, { new: true, runValidators: true })
+        });
+    }
+    const dailyLog = await Daily_Log.find({ vehicle: vehicle_id })
+    if (dailyLog.length) {
+        await Daily_Log.deleteMany({ vehicle: vehicle_id })
+    }
+    const maint_log = await Maintenance_Log.find({ vehicle: vehicle_id })
+    if (maint_log.length) {
+        await Maintenance_Log.deleteMany({ vehicle: vehicle_id })
+    }
+    const notif = await Notification.find({ vehicleInfo: vehicle_id })
+    if (notif.length) {
+        await Notification.deleteMany({ vehicleInfo: vehicle_id })
+    }
+    const planMaint = await PlanMaint.find({ vehicle: vehicle_id })
+    if (planMaint.length) {
+        await PlanMaint.deleteMany({ vehicle: vehicle_id })
+    }
+
     await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, access: 'admin', title: 'Vehicle Deprovisioning', message: `Vehicle with plate no ${vehicleExist.plate_no} has been deleted successfully.`, })
 
     res.status(StatusCodes.OK).json({ msg: `Vehicle with ID ${vehicle_id} deleted successfully!!!` })

@@ -60,14 +60,71 @@
       2. Get all vehicles [GET request] => /api/vehicle/all-vehicles/
          ## Required Info
          1. Bearer token
-      3. Admin Update Vehicle Info [PATCH request] => /api/admin-update-vehicle-info
+      3. Admin Update Vehicle Info [PATCH request] => /api/vehicle/admin-update-vehicle-info
          ## Required Info
          1. Bearer token for authorization [so that only user logged in as 'vehicle_coordinator' can perform the vehicle adding operation]
          2. 1. vehicle_id, 2. brand, 3. plate_no, 4. vehicle_type, 5. current_millage, 6. engine_no, current_state, department
-      4. Update Vehicle Info [PATCH request] => /api/update-vehicle-info
+      4. Delete Vehicle [DELETE request] => /api/vehicle/delete-vehicle
          ## Required Info
-         1. Bearer token for authorization [to ensure only logged in users and their drivers (if any) can make changes to the vehicle assiged to them (loggedInUser)]
-         2. ##### work in progress
+         1. Bearer token for authorization [so that only user logged in as 'vehicle_coordinator' can perform the vehicle adding operation]
+         2. vehicle_id
+      5. Assign Vehicle [PATCH request] => /api/vehicle/admin-update-vehicle-info
+         ## Required Info
+         1. Bearer token for authorization [so that only user logged in as 'vehicle_coordinator' can perform the vehicle adding operation]
+         2. 1. Vehicle_id, 2. assignee_id [the ID of the vehicle_assignee]
+
+   4. Maintenance Schema
+
+      1. Create maintenance log [POST request] => /api/maint-log/create-maint-log
+         ## Required Info
+         1. Bearer Token
+         2. 1. vehicle_id, 2. issues. such as ["Poor braking system", "Vehicle due for service", "Bad suspension"]. 3. solutions. such as ["I replaced the front wheels braking pads"]. 4. cost
+      2. Get all maintenance log [GET request] => /api/maint-log/all-maint-log
+         ## Required Info
+         1. Bearer Token
+         2. 1. vehicle_id, 2. start_date 3. end_date
+      3. Edit maintenance log [PATCH request] => /api/maint-log/edit-maint-log
+         ## Required Info
+         1. Bearer Token
+         2. 1. maintenance log id, 2. issues: [], 3. solutions: [], cost: ""
+      4. Plan maintenance [POST request] => /api/maint-log/plan-maint
+         ## Required Info
+         1. Bearer Token
+         2. 1. vehicle id, 2. services: [], 3. concerns: [], 4. proposedDate: YYYY-MM-DD
+      5. Edit plan maintenance [PATCH request] => /api/maint-log/edit-planned-maint
+         # Required Info
+         1. Bearer Token
+         2. 1. planMaintLog id, 2. services: [], 3. concersns: [], 4. proposedDate: YYYY-MM-DD
+      6. Get all planned maintenance [GET request] => /api/maint-log/all-planned-maint
+         # Required Info
+         1. Bearer Token
+         2. 1. vehicle id, 2. start_date: YYYY-MM-DD, 3. end_date: YYYY-MM-DD
+
+   5. Notification Schema
+      1. Get all notifications [GET request] => /api/notification/all-notifications
+         ## Required Info
+         1. Bearer token
+      2. Filter all notifications (based on admin as vehicle_coordiinator, vehicle_assignee, and maintenance_personnel) [GET request] => /api/notification/filter-notifications
+         ## Required Info
+         1. Bearer Token
+         2. 1. role: (either of admin as vehicle_coordinator, vehicle_assingee, or maintenance_personnel) => this is gotten among the fetched data when a user logs in or signs up.
+   6. Driver Schema
+      1. Create daily driver's log [POST request] => /api/drivers-log/new-log
+         ## Required Info
+         1. Bearer token
+         2. 1. vehicle_id, 2. starting_location, 3. ending_location, 4. route, 5. starging_mileage, 6. ending_mileage, 7. fuelLevel: (either of low, mid, or full)
+      2. Edit daily driver's log [PATCH request] => /api/drivers-log/edit-log
+         ## Required Info
+         1. Bearer token
+         2. 1. log_id (gotten when a log is clicked), 2. 1. vehicle_id, 2. starting_location, 3. ending_location, 4. route, 5. starging_mileage, 6. ending_mileage, 7. fuelLevel: (either of low, mid, or full)
+      3. Get all daily driver's log [GET request] => /api/drivers-log/all-logs
+         ## Required Info
+         1. Bearer token
+         2. 1.vehicle_id, 2. start_date: YYYY-MM-DD 3. end_date: YYYY-MM-DD
+      4. Delete daily driver's log [DELETE request] => /api/drivers-log/delete-log
+         ## Required Info
+         1. Bearer token
+         2. vehicle_id
 
 3. Data Formats:
 

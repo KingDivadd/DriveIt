@@ -4,8 +4,8 @@ const { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog, planMain
 const tokenDecoder = require("../middleware/auth-middleware")
 
 router.route("/all-maint-log").get(allVehicleMaintLog)
-router.route("/create-vehicle-maint-log").patch(tokenDecoder, createVehicleMaintLog)
-router.route('/edit-vehicle-maint-log').patch(tokenDecoder, editVehicleMaintLog)
+router.route("/create-maint-log").post(tokenDecoder, createVehicleMaintLog)
+router.route('/edit-maint-log').patch(tokenDecoder, editVehicleMaintLog)
 router.route('/plan-maint').post(tokenDecoder, planMaint)
 router.route('/edit-planned-maint').patch(tokenDecoder, editPlannedMaint)
 router.route('/all-planned-maint').get(tokenDecoder, allPlannedMaint)

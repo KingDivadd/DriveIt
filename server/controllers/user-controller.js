@@ -35,9 +35,9 @@ const filterUsers = asyncHandler(async(req, res) => {
     const { firstName, lastName, dept, role } = req.body;
 
     // Check if all filter values are empty
-    if (!firstName && !lastName && !dept && !role) {
-        return res.status(400).json({ msg: `Error... At least one filter must be provided` });
-    }
+    // if (!firstName && !lastName && !dept && !role) {
+    //     return res.status(400).json({ msg: `Error... At least one filter must be provided` });
+    // }
 
     const query = {};
 
@@ -63,7 +63,7 @@ const filterUsers = asyncHandler(async(req, res) => {
         return res.status(404).json({ msg: `No matching users found` });
     }
 
-    res.status(StatusCodes.OK).json({ users: users });
+    res.status(StatusCodes.OK).json({ nbHit: users.length, users: users });
 })
 
 const updateUserInfo = asyncHandler(async(req, res) => {

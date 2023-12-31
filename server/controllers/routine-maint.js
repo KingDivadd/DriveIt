@@ -49,7 +49,7 @@ const engineOilChange = asyncHandler(async(req, res) => {
 
 })
 
-setTimeout(() => {
+setInterval(() => {
     engineOilChange
 }, 24 * 3600 * 1000);
 
@@ -82,7 +82,7 @@ const genVehicleService = asyncHandler(async(req, res) => {
     })
 })
 
-setTimeout(() => {
+setInterval(() => {
     genVehicleService
 }, 24 * 3600 * 1000);
 

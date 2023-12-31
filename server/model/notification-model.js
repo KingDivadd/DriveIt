@@ -8,7 +8,7 @@ const notificationSchema = new mongoose.Schema({
     planMaintInfo: { type: mongoose.Types.ObjectId, ref: "plannedMaint", },
     staffInfo: { type: mongoose.Types.ObjectId, ref: "User", },
     message: { type: String, trim: true, required: true, },
-    access: { type: String, enum: ['vehicle_asignee', 'admin', 'maintenance_personnel'], required: true },
+    access: { type: String, enum: ['vehicle_assignee', 'admin', 'maintenance_personnel'], required: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model("Notification_Log", notificationSchema)

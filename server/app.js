@@ -62,7 +62,7 @@ app.use("/api/user", userRoute)
 app.use("/api/vehicle", vehicleRoute)
 app.use("/api/maint-log", maintLogRoute)
     // app.use("/api/location", locationRoute)
-app.use("/api/driver-log", dailyLogRoute)
+app.use("/api/drivers-log", dailyLogRoute)
 app.use("/api/notification", notificationRoute)
 
 beginTracking()

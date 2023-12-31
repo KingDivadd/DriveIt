@@ -5,14 +5,49 @@ const DailyLog = require("../model/daily-log-model")
 const User = require("../model/user-model")
 const { StatusCodes } = require("http-status-codes")
 
+const allLog = asyncHandler(async(req, res) => {
+    const { vehicle_id, start_date, end_date } = req.body
+    const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
+    if (!vehicleExist) {
+        return res.status(404).json({ err: `Error... Vehicle with ID ${vehicle_id} not found!!!` })
+    }
+    let auth = false
+    const assignedTo = vehicleExist.assigned_to
+    assignedTo.forEach(async(data, ind) => {
+        if (data === req.info.id.id) {
+            auth = true
+        }
+        const user = await User.findOne({ _id: data })
+        if (user.driver === req.info.id.id) {
+            auth = true
+        }
+    });
+    if (req.info.id.role === "vehicle_coordinator") {
+        auth = true
+    }
+    if (auth === false) {
+        return res.status(401).json({ err: `Error... Only staffs assigned to a vehicle are allowed to create vehicle logs!!!` })
+    }
+    const query = {}
+    query.vehicle = vehicle_id
+    if (start_date && end_date) {
+        query.updatedAt = { $gte: `${start_date}T00:00:00.000Z`, $lte: `${end_date}T23:59:59.999Z` }
+    }
+    const allLogs = await DailyLog.find(query)
+
+    return res.status(200).json({ nbHit: allLogs.length, dailyLogs: allLogs })
+})
 const newLog = asyncHandler(async(req, res) => {
-    const { vehicle_id, startingLocation, endingLocation, route, startingMileage, endingMileage } = req.body
+    const { vehicle_id, startingLocation, endingLocation, route, startingMileage, endingMileage, fuelLevel } = req.body
+    if (!vehicle_id) {
+        return res.status(500).json({ err: `Error... Please select a vehicle!!!` })
+    }
 
     const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
     if (!vehicleExist) {
         return res.status(404).json({ err: `Error... Vehicle with ID ${vehicle_id} not found!!!` })
     }
-    if (!startingLocation || !endingLocation || !route || !startingMileage || !endingMileage) {
+    if (!startingLocation || !endingLocation || !startingMileage || !endingMileage || !fuelLevel) {
         return res.status(500).json({ err: `Please fill all fields!!!` })
     }
     let auth = false
@@ -144,4 +179,4 @@ const deleteLog = asyncHandler(async(req, res) => {
     return res.status(200).json({ msg: `Vehicle log deleted successfully...` })
 })
 
-module.exports = { newLog, editLog, deleteLog }
+module.exports = { allLog, newLog, editLog, deleteLog }

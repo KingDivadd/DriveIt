@@ -65,7 +65,8 @@ const signIn = asyncHandler(async(req, res) => {
             ]
         })
         if (!findUser) {
-            return res.status(StatusCodes.NOT_FOUND).json({ err: `User with email / staffId '${email}' not found!!!` })
+            return res.status(StatusCodes.NOT_FOUND).json({ err: `User with email / staffId '${email_staffId}' not found!!!` })
+
         }
         const userId = findUser._id
         const findAuth = await Auth.findOne({ userId })
