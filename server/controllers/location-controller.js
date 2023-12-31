@@ -1,7 +1,6 @@
 const asyncHandler = require('express-async-handler')
 const Location = require("../model/location-model")
 const mongoose = require('mongoose')
-const axios = require('axios')
 
 const beginTracking = asyncHandler(async(req, res) => {
 
