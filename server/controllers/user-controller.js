@@ -4,6 +4,9 @@ const Vehicle = require("../model/vehicle-model")
 const { StatusCodes } = require("http-status-codes")
 const sendEmail = require("./email-controller")
 const Notification = require("../model/notification-model")
+const MaintLog = require("../model/maint-log-model")
+const PlannedMaint = require("../model/plan-maint-model")
+const DailyLog = require("../model/daily-log-model")
 
 // this role is restricted to the maintenance personnel and the vehicle coordinators alone
 const allUsers = asyncHandler(async(req, res) => {
@@ -24,11 +27,39 @@ const getUsers = asyncHandler(async(req, res) => {
 })
 
 const oneUser = asyncHandler(async(req, res) => {
-    const users = await User.find({})
-    if (!users) {
-        return res.status(500).json({ err: `Error.... Unable to fetch users!!!` })
+    const { user_id } = req.body
+    if (!user_id) {
+        return res.status(500).json({ err: `Error... Please provide user id!!!` })
     }
-    res.status(500).json({ userInfos: users })
+    const user = await User.findOne({ _id: user_id })
+    if (!user) {
+        return res.status(404).json({ err: `Error... User not found!!!` })
+    }
+    // now after fetching the user, we fetch all info associated with the user
+    // first vehicle
+    let user_vehicle;
+    user_vehicle = await Vehicle.findOne({ assigned_to: { $in: [user._id] } })
+    if (user.role === "driver") {
+        const vehicle_owner = await User.findOne({ driver: user._id })
+        if (!vehicle_owner) {
+            return res.status(404).json({ err: `Error... Driver not assigned yet!!!` })
+        }
+        user_vehicle = await Vehicle.findOne({ assigned_to: { $in: [vehicle_owner._id] } })
+    }
+    if (!user_vehicle) {
+        return res.status(404).json({ err: `Unfortunately, no vehicle has been assigned to user yet!!!` })
+    }
+
+    // maintenance logs
+    const maintenance_log = await MaintLog.find({ vehicle: user_vehicle._id })
+
+    // planned maintenance
+    const planned_maint = await PlannedMaint.find({ vehicle: user_vehicle._id })
+
+    // Daily Driver's log
+    const daily_log = await DailyLog.find({ vehicle: user_vehicle._id })
+
+    res.status(200).json({ user: user, user_vehicle: user_vehicle, nbMaintLog: maintenance_log.length, maint_log: maintenance_log, nbPlannedMaint: planned_maint.length, planned_maint: planned_maint, nbDailyLog: daily_log.length, daily_logs: daily_log })
 })
 
 const filterUsers = asyncHandler(async(req, res) => {
@@ -168,6 +199,33 @@ const removeDriver = asyncHandler(async(req, res) => {
 
 const deleteUser = asyncHandler(async(req, res) => {
     const { user_id } = req.body
+    return res.status(200).json({ msg: `Delete feature is still under development.` })
+    if (req.info.id.role !== "vehicle_coordinator") {
+        return res.status(401).json({ err: `Error... you're unauthorized to delete user!!!` })
+    }
+    const user_exist = await User.findOne({ _id: user_id })
+    if (!user_exist) {
+        return res.status(404).json({ err: "User not found!!!" })
+    }
+    let removeUser;
+    if (user_exist.role === "vehicle_assignee") {
+        // remove all my id from all occurances
+        const vehicle = await Vehicle.findOne({ assigned_to: { $in: [user_id] } })
+        if (vehicle) {
+            await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { $pull: { assigned_to: user_id } }, { new: true, runValidators: true })
+        }
+
+        removeUser = await User.findOne({ _id: user_id })
+    }
+    if (user_exist.role === "driver") {
+
+    }
+    if (user_exist.role === "maintenance_personnel") {
+
+    }
+    if (user_exist.role === "vehicle_coordinator") {
+
+    }
     return res.send({ msg: `Work in progress...` })
         // 
 

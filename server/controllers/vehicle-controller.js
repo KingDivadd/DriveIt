@@ -138,16 +138,13 @@ const assignVehicle = asyncHandler(async(req, res) => {
         return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... User with ID ${assignee_id} not found!!!` })
     }
     // make sure the user is not assigned to another vehicle
-    const vehicle = assigneeExist.vehicle
-    if (vehicle.length) {
+    if (assigneeExist.vehicle) {
         return res.status(500).json({ err: `Error... User already assigned to a vehicle!!!` })
     }
-    if (!vehicle.includes(vehicle_id)) {
-        vehicle.push(vehicle_id)
-    }
-    const assignVehicle = await User.findOneAndUpdate({ _id: assignee_id }, { vehicle }, { new: true, runValidators: true })
+
+    const assignVehicle = await User.findOneAndUpdate({ _id: assignee_id }, { vehicle: vehicle_id }, { new: true, runValidators: true })
     if (!assignVehicle) {
-        return res.status(500).json({ err: `Error... unable to assign vehicle to ${lastName}!!!` })
+        return res.status(500).json({ err: `Error... unable to assign vehicle to ${assigneeExist.lastName}!!!` })
     }
     // now add the assignee id to the vehicle
     const assigned_to = vehicleExist.assigned_to

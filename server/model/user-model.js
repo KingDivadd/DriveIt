@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     driver: { type: mongoose.Types.ObjectId, ref: "User" },
     dept: { type: String, enum: ['SEET', 'SAAT', 'SOS', 'SEMS', 'SHIT', 'SO'] },
     pic: { type: String, trim: true, default: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1GL8Mz5XG-_9NZ77L0xQzDdiYIBqXgfOUM4pJUnKWww&s' },
-    vehicle: [{ type: mongoose.Types.ObjectId, ref: "Vehicle" }],
+    vehicle: { type: mongoose.Types.ObjectId, ref: "Vehicle" },
 }, { timestamps: true })
 
 module.exports = mongoose.model("User", userSchema)
