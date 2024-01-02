@@ -16,6 +16,7 @@ const maintSchema = new mongoose.Schema({
     solutions: [{ type: String, trim: true, }],
     cost: { type: String, trim: true },
     maint_personnel: { type: mongoose.Types.ObjectId, ref: "Users", requried: true },
+    status: { type: String, enum: ["in_shop", "pending", "in_progress", "completed"] }
 }, { timestamps: true })
 
 module.exports = mongoose.model("Maintenance_Log", maintSchema)

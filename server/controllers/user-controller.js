@@ -27,11 +27,7 @@ const getUsers = asyncHandler(async(req, res) => {
 })
 
 const oneUser = asyncHandler(async(req, res) => {
-    const { user_id } = req.body
-    if (!user_id) {
-        return res.status(500).json({ err: `Error... Please provide user id!!!` })
-    }
-    const user = await User.findOne({ _id: user_id })
+    const user = await User.findOne({ _id: req.info.id.id })
     if (!user) {
         return res.status(404).json({ err: `Error... User not found!!!` })
     }
@@ -123,7 +119,7 @@ const updateUserInfo = asyncHandler(async(req, res) => {
     if (!updateInfo) {
         return res.status(500).json({ err: `Error... unable to update user info!!!` })
     }
-    await Notification.create({ access: 'vehicle_asignee', createdBy: req.info.id.id, title: 'Profile Update', message: `Your profile was updated successfully.`, })
+    await Notification.create({ access: 'vehicle_assignee', createdBy: req.info.id.id, title: 'Profile Update', message: `Your profile was updated successfully.`, })
 
     res.status(StatusCodes.OK).json({ msg: `User info updated successfully`, userInfo: updateInfo })
 })
@@ -162,7 +158,7 @@ const assignDriver = asyncHandler(async(req, res) => {
 
     await Notification.create({ access: 'admin', staffInfo: driver_id, createdBy: req.info.id.id, title: `Driver Assignment`, message: `A driver, ${driverExist.lastName} has been assined to ${newAssignee.lastName} successfully`, })
 
-    await Notification.create({ access: 'vehicle_asignee', staffInfo: driver_id, createdBy: req.info.id.id, title: `Driver Assignment`, message: `A driver, ${driverExist.lastName} has been assined to you successfully`, })
+    await Notification.create({ access: 'vehicle_assignee', staffInfo: driver_id, createdBy: req.info.id.id, title: `Driver Assignment`, message: `A driver, ${driverExist.lastName} has been assined to you successfully`, })
 
     sendEmail("Driver Assignment", { firstName: newAssignee.firstName, info: `We are pleased to inform you that a driver whose name is below has been assigned to you.`, code: `${driverExist.lastName} ${driverExist.firstName}` }, newAssignee.email)
 
@@ -191,7 +187,7 @@ const removeDriver = asyncHandler(async(req, res) => {
     }
     await Notification.create({ access: 'admin', createdBy: req.info.id.id, title: `Driver Recall`, message: `${removeDriver.lastName}'s Driver has been recalled successfully.` })
 
-    await Notification.create({ access: 'vehicle_asignee', createdBy: req.info.id.id, title: `Driver Recall`, message: `Your driver has been recalled successfully.` })
+    await Notification.create({ access: 'vehicle_assignee', createdBy: req.info.id.id, title: `Driver Recall`, message: `Your driver has been recalled successfully.` })
 
     sendEmail("Driver Transfer", { firstName: removeDriver.firstName, info: `We regret to inform you that your driver has been removed / transfered.`, code: '' }, removeDriver.email)
     res.status(StatusCodes.OK).json({ msg: `Driver removed successfully`, assigneeInfo: removeDriver })

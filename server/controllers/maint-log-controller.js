@@ -95,23 +95,39 @@ const allPlannedMaint = asyncHandler(async(req, res) => {
 })
 
 const allVehicleMaintLog = asyncHandler(async(req, res) => {
-    const { start_date, end_date } = req.body
+    const { start_date, end_date, filter } = req.body
         // for each logged in user
-    const user = await User.findOne({ _id: req.info.id.id })
+
+    let user;
+    user = await User.findOne({ _id: req.info.id.id })
+    let driver = { msg: "No assigned driver yet!!!" }
+    if (req.info.id.role === 'driver') {
+        user = await User.findOne({ driver: req.info.id.id })
+        if (!user) {
+            return res.status(404).json({ err: `Unfortunately, you're not assigned to any vehicle owner yet!!!` })
+        }
+        driver = await User.findOne({ _id: user.driver })
+        if (!driver) {
+            return res.status(404).json({ err: `Driver not found` })
+        }
+    }
     if (!user.vehicle) {
         return res.status(500).json({ msg: `No vehicle assigned to user yet!!!` })
     }
     const vehicle_exist = await Vehicle.findOne({ _id: user.vehicle })
     if (!vehicle_exist) {
-        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Vehicle with not found!!!` })
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Vehicle not found!!!` })
     }
-    const query = {}
+    let query = {}
     query.vehicle = user.vehicle
     if (start_date && end_date) {
         query.updatedAt = { $gte: `${start_date}T00:00:00.000Z`, $lte: `${end_date}T23:59:59.999Z` }
     }
+    if (filter) {
+        query.filter = filter
+    }
     const maint_log = await Maintenance_Log.find(query)
-    return res.status(200).json({ nbHit: maint_log.length, maint_logs: maint_log })
+    return res.status(200).json({ nbHit: maint_log.length, maint_logs: maint_log, })
 })
 
 const createVehicleMaintLog = asyncHandler(async(req, res) => {

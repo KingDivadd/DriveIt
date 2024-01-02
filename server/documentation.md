@@ -30,23 +30,26 @@
       1. Get all users [ GET request ]=> /api/user/all-users
          ## Required info
          1. Bearer token for authorization [to get logged in user info and filter it out from the users array]
-      2. Filter / search for user [ POST request] => /api/user/filter-users
+      2. One user [GET request] => /api/user/find-user
+         ## Required Info
+         1. Bearer token
+      3. Filter / search for user [ POST request] => /api/user/filter-users
          ## Required info
          1. Any of [ 1. firstName 2. lastName 3. dept 4. role ]
          # this shows all the users including the logged in user
-      3. Update / edit user info [PATCH request] => /api/user/update-user-info
+      4. Update / edit user info [PATCH request] => /api/user/update-user-info
          ## Required Info
          1. user_id and any of [1. firstName, 2. lastName, 3. staffId, 4. phone, 5. pic]
          2. Bearer token for authorization [so only a logged in user can update his profile and his alone]
-      4. Assign Driver [PATCH request] => /api/user/assign-driver
+      5. Assign Driver [PATCH request] => /api/user/assign-driver
          ## Required Info
          1. Bearer token for authorization [so that only user logged in as vehicle coordinator can perform operation]
          2. Both of [1. assignee_id, 2. driver_id]
-      5. Remove Driver [PATCH request] =>/api/user/remove-driver
+      6. Remove Driver [PATCH request] =>/api/user/remove-driver
          ## Required Info
          1. Bearer token for authorization [so that only user logged in as ''vehicle_coordinator' can perform operation]
          2. assignee_id [we are woking on the assumption that only a driver is assigned to an assignee]
-      6. Remove User [DELETE request] => /api/user/delete-user
+      7. Remove User [DELETE request] => /api/user/delete-user
          ## Required Info
          1. Bearer token for authorization [so that only user logged in as ''vehicle_coordinator' can perform operation]
          2. assignee_id [we are woking on the assumption that only a driver is assigned to an assignee]
@@ -60,15 +63,18 @@
       2. Get all vehicles [GET request] => /api/vehicle/all-vehicles/
          ## Required Info
          1. Bearer token
-      3. Admin Update Vehicle Info [PATCH request] => /api/vehicle/admin-update-vehicle-info
+      3. Logged In user Vehicle [GET request] => /api/vehicle/user-vehicle
+         ## Required Info
+         1. Bearer token
+      4. Admin Update Vehicle Info [PATCH request] => /api/vehicle/admin-update-vehicle-info
          ## Required Info
          1. Bearer token for authorization [so that only user logged in as 'vehicle_coordinator' can perform the vehicle adding operation]
          2. 1. vehicle_id, 2. brand, 3. plate_no, 4. vehicle_type, 5. current_millage, 6. engine_no, current_state, department
-      4. Delete Vehicle [DELETE request] => /api/vehicle/delete-vehicle
+      5. Delete Vehicle [DELETE request] => /api/vehicle/delete-vehicle
          ## Required Info
          1. Bearer token for authorization [so that only user logged in as 'vehicle_coordinator' can perform the vehicle adding operation]
          2. vehicle_id
-      5. Assign Vehicle [PATCH request] => /api/vehicle/admin-update-vehicle-info
+      6. Assign Vehicle [PATCH request] => /api/vehicle/admin-update-vehicle-info
          ## Required Info
          1. Bearer token for authorization [so that only user logged in as 'vehicle_coordinator' can perform the vehicle adding operation]
          2. 1. Vehicle_id, 2. assignee_id [the ID of the vehicle_assignee]
@@ -98,7 +104,7 @@
       6. Get all planned maintenance [GET request] => /api/maint-log/all-planned-maint
          # Required Info
          1. Bearer Token
-         2. 1. vehicle id, 2. start_date: YYYY-MM-DD, 3. end_date: YYYY-MM-DD
+         2. 1. start_date: YYYY-MM-DD, 2. end_date: YYYY-MM-DD (when neighther is provided, all logs are fetched.)
 
    5. Notification Schema
       1. Get all notifications [GET request] => /api/notification/all-notifications
@@ -120,7 +126,7 @@
       3. Get all daily driver's log [GET request] => /api/drivers-log/all-logs
          ## Required Info
          1. Bearer token
-         2. 1.vehicle_id, 2. start_date: YYYY-MM-DD 3. end_date: YYYY-MM-DD
+         2. 1. start_date: YYYY-MM-DD 2. end_date: YYYY-MM-DD (when neigther is provided, all logs are fetched)
       4. Delete daily driver's log [DELETE request] => /api/drivers-log/delete-log
          ## Required Info
          1. Bearer token

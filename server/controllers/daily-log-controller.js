@@ -6,36 +6,36 @@ const User = require("../model/user-model")
 const { StatusCodes } = require("http-status-codes")
 
 const allLog = asyncHandler(async(req, res) => {
-    const { vehicle_id, start_date, end_date } = req.body
-    const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
-    if (!vehicleExist) {
-        return res.status(404).json({ err: `Error... Vehicle with ID ${vehicle_id} not found!!!` })
-    }
-    let auth = false
-    const assignedTo = vehicleExist.assigned_to
-    assignedTo.forEach(async(data, ind) => {
-        if (data === req.info.id.id) {
-            auth = true
+    const { start_date, end_date } = req.body
+    let user;
+    user = await User.findOne({ _id: req.info.id.id })
+    let driver = { msg: "No assigned driver yet!!!" }
+    if (req.info.id.role === 'driver') {
+        user = await User.findOne({ driver: req.info.id.id })
+        if (!user) {
+            return res.status(404).json({ err: `Unfortunately, you're not assigned to any vehicle owner yet!!!` })
         }
-        const user = await User.findOne({ _id: data })
-        if (user.driver === req.info.id.id) {
-            auth = true
+        driver = await User.findOne({ _id: user.driver })
+        if (!driver) {
+            return res.status(404).json({ err: `Driver not found` })
         }
-    });
-    if (req.info.id.role === "vehicle_coordinator") {
-        auth = true
     }
-    if (auth === false) {
-        return res.status(401).json({ err: `Error... Only staffs assigned to a vehicle are allowed to create vehicle logs!!!` })
+    if (!user.vehicle) {
+        return res.status(500).json({ msg: `No vehicle assigned to user yet!!!` })
     }
+    const vehicle_exist = await Vehicle.findOne({ _id: user.vehicle })
+    if (!vehicle_exist) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Vehicle not found!!!` })
+    }
+
     const query = {}
-    query.vehicle = vehicle_id
+    query.vehicle = vehicle_exist._id
     if (start_date && end_date) {
         query.updatedAt = { $gte: `${start_date}T00:00:00.000Z`, $lte: `${end_date}T23:59:59.999Z` }
     }
     const allLogs = await DailyLog.find(query)
 
-    return res.status(200).json({ nbHit: allLogs.length, dailyLogs: allLogs })
+    return res.status(200).json({ nbHit: allLogs.length, dailyLogs: allLogs, assignedDriver: driver })
 })
 const newLog = asyncHandler(async(req, res) => {
     const { vehicle_id, startingLocation, endingLocation, route, startingMileage, endingMileage, fuelLevel } = req.body

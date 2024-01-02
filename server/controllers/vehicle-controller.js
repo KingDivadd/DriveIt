@@ -51,7 +51,30 @@ const getAllVehicles = asyncHandler(async(req, res) => {
     res.status(StatusCodes.OK).json({ nbHits: allVehicles.length, availVehicles: allVehicles })
 })
 
-// Update vehicle infomation
+const userVehicle = asyncHandler(async(req, res) => {
+        let user;
+        user = await User.findOne({ _id: req.info.id.id })
+        let driver = { msg: "No assigned driver yet!!!" }
+        if (req.info.id.role === 'driver') {
+            user = await User.findOne({ driver: req.info.id.id })
+            if (!user) {
+                return res.status(404).json({ err: `Unfortunately, you're not assigned to any vehicle owner yet!!!` })
+            }
+            driver = await User.findOne({ _id: user.driver })
+            if (!driver) {
+                return res.status(404).json({ err: `Driver not found` })
+            }
+        }
+        if (!user.vehicle) {
+            return res.status(500).json({ msg: `No vehicle assigned to user yet!!!` })
+        }
+        const vehicle_exist = await Vehicle.findOne({ _id: user.vehicle })
+        if (!vehicle_exist) {
+            return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Vehicle not found!!!` })
+        }
+        return res.status(200).json({ userVehicle: vehicle_exist })
+    })
+    // Update vehicle infomation
 const adminUpdateVehicleInfo = asyncHandler(async(req, res) => {
     const { vehicle_id, brand, plate_no, vehicle_type, current_mileage, engine_no, current_state, department } = req.body
     if (req.info.id.role !== "vehicle_coordinator") {
@@ -240,4 +263,4 @@ const deleteVehicle = asyncHandler(async(req, res) => {
     res.status(StatusCodes.OK).json({ msg: `Vehicle with ID ${vehicle_id} deleted successfully!!!` })
 })
 
-module.exports = { addVehicle, adminUpdateVehicleInfo, getAllVehicles, deleteVehicle, assignVehicle, deassignVehicle }
+module.exports = { addVehicle, adminUpdateVehicleInfo, getAllVehicles, userVehicle, deleteVehicle, assignVehicle, deassignVehicle }
