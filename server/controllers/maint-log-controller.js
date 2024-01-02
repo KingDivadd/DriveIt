@@ -95,16 +95,18 @@ const allPlannedMaint = asyncHandler(async(req, res) => {
 })
 
 const allVehicleMaintLog = asyncHandler(async(req, res) => {
-    const { vehicle_id, start_date, end_date } = req.body
-    if (!vehicle_id) {
-        return res.status(500).json({ err: `Error... Please select a vehicle!!!` })
+    const { start_date, end_date } = req.body
+        // for each logged in user
+    const user = await User.findOne({ _id: req.info.id.id })
+    if (!user.vehicle) {
+        return res.status(500).json({ msg: `No vehicle assigned to user yet!!!` })
     }
-    const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
-    if (!vehicleExist) {
-        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Vehicle with ID ${vehicle_id} not found!!!` })
+    const vehicle_exist = await Vehicle.findOne({ _id: user.vehicle })
+    if (!vehicle_exist) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Vehicle with not found!!!` })
     }
     const query = {}
-    query.vehicle = vehicle_id
+    query.vehicle = user.vehicle
     if (start_date && end_date) {
         query.updatedAt = { $gte: `${start_date}T00:00:00.000Z`, $lte: `${end_date}T23:59:59.999Z` }
     }
