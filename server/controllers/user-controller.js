@@ -67,7 +67,7 @@ const oneUser = asyncHandler(async(req, res) => {
     }
 
     if (user.role === "driver") {
-        const vehicle_owner = await User.findOne({ driver: user._id })
+        vehicle_owner = await User.findOne({ driver: user._id })
         if (!vehicle_owner) {
             vehicle_owner = { err: `Unfortunately, you are yet to be assigned!!!` }
             user_vehicle = { _id: 0, msg: `Unfortunately, no Vehicle has been assigned yet!!!` };
