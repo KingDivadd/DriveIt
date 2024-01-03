@@ -11,25 +11,27 @@ const sendEmail = require("./email-controller")
 
 // createing a vehicle instance
 const addVehicle = asyncHandler(async(req, res) => {
-    const { plate_no, engine_no, current_mileage, department, vehicle_type, brand } = req.body
+    const { brand, vehicle_name, fuel_type, vehicle_color, chasis_no, manufacture_year, vehicle_image, plate_no, current_mileage, engine_no, vehicle_type, } = req.body
 
     if (req.info.id.role !== "vehicle_coordinator") {
         return res.status(StatusCodes.UNAUTHORIZED).json({ err: "Error. You're not authorized to perform this operation!!!" })
     }
-    if (!plate_no || !engine_no || !vehicle_type || !brand || !current_mileage) {
-        res.status(500).json({ err: "Please enter provide all vehicle information!!!" })
+    if (!brand || !vehicle_name || !fuel_type || !vehicle_color || !chasis_no || !manufacture_year || !plate_no || !current_mileage || !engine_no || !vehicle_type) {
+        res.status(500).json({ err: "Please provide all vehicle information!!!" })
     }
     // check if a vehicle with the entered plate number exist
     const query = {
         $or: [
-            { plate_no: { $regex: new RegExp(plate_no, 'i') } },
-            { engine_no: { $regex: new RegExp(engine_no, 'i') } }
+            { plate_no: plate_no },
+            { engine_no: engine_no },
+            { chasis_no: chasis_no },
         ]
     };
 
+
     const vehicleExist = await Vehicle.find(query)
     if (vehicleExist.length) {
-        return res.status(500).json({ err: `Vehicle with Plate NO. ${plate_no} or (and) ENGINE NO ${engine_no} already exist!!!` })
+        return res.status(500).json({ err: `Vehicle with either of Plate NO. ${plate_no}, ENGINE NO ${engine_no} or (and) CHASIS NO ${chasis_no} already exist!!!` })
     }
     req.body.added_by = req.info.id.id
     const service_mileage = Number(current_mileage) + 5000
@@ -200,21 +202,23 @@ const deassignVehicle = asyncHandler(async(req, res) => {
     if (!vehicleExist) {
         return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Vehicle with ID ${vehicle_id} not found!!!` })
     }
-    // now fetch and check if assigned to any user and if yes, remove it from the list
+    //now fetch and check
+    // if assigned to any user and
+    // if yes, remove it from the list
     const assignee = await User.find({ vehicle: { $in: [vehicle_id] } })
     if (assignee.length) {
         const clearAssignedTo = await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { assigned_to: [] }, { new: true, runValidators: true })
-        const deleteResult = await User.deleteMany({ vehicle: { $in: [vehicle_id] } })
+        const deleteResult = await User.findOneAndUpdate({ vehicle: vehicle_id }, { vehicle: null }, { new: true, runValidators: true })
         if (!deleteResult && !clearAssignedTo) {
             return res.status(400).json({ err: `Error removing vehicles form previous assignee!!!` })
         }
         await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, title: "Vehicle Recall", message: `Vehicle with plate no ${vehicleExist.plate_no} has been recalled successfully.`, access: 'admin' })
 
-        await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, title: "Vehicle Recall", message: `Your vehicle has been recalled, a new vehicle is underway`, access: 'vehicle_asignee' })
+        await Notification.create({ createdBy: req.info.id.id, vehicleInfo: vehicle_id, title: "Vehicle Recall", message: `Your vehicle has been recalled, a new vehicle is underway`, access: 'vehicle_assignee' })
 
         return res.status(StatusCodes.OK).json({ msg: `Vehicle with ID ${vehicle_id} recalled successfully`, vehicleInfo: clearAssignedTo })
     } else {
-        return res.status(StatusCodes.OK).json({ msg: `Vehicle is current not assigned to any one`, vehicleInfo: ve })
+        return res.status(StatusCodes.OK).json({ msg: `Vehicle is current not assigned to any one`, vehicleInfo: '' })
     }
 
 })
@@ -238,7 +242,7 @@ const deleteVehicle = asyncHandler(async(req, res) => {
     const user = User.find({ vehicle: vehicle_id })
     if (user.length) {
         user.forEach(async data => {
-            await User.updateMany({ _id: data._id }, { $pull: { vehicle: vehicle_id } }, { new: true, runValidators: true })
+            await User.findOneAndUpdate({ _id: data._id }, { vehicle: null }, { new: true, runValidators: true })
         });
     }
     const dailyLog = await Daily_Log.find({ vehicle: vehicle_id })
