@@ -79,8 +79,11 @@ const oneUser = asyncHandler(async(req, res) => {
 
         if (!user_vehicle || user_vehicle === null) {
             user_vehicle = { _id: 0, msg: `Unfortunately, no Vehicle has been assigned to user yet!!!` };
+            maint_log = []
             maint_log.push({ err: `Error... No maintenance log available!!!` })
+            planned_maint = []
             planned_maint.push({ err: `Error... No planned maintenance log available!!!` })
+            daily_log = []
             daily_log.push({ err: `Error... No daily vehicle log available!!!` })
         }
         if (user_vehicle._id !== 0) {
