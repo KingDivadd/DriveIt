@@ -57,7 +57,7 @@ const oneUser = asyncHandler(async(req, res) => {
             daily_log = await DailyLog.find({ vehicle: user_vehicle._id })
         }
         if (user.driver === null) {
-            assigned_driver = { err: `Error... Driver not found!!!` }
+            assigned_driver = { err: `Error... Driver not assigned yet!!!` }
         }
         if (user.driver) {
             assigned_driver = await User.findOne({ _id: user.driver })
