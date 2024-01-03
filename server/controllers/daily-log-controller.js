@@ -6,7 +6,7 @@ const User = require("../model/user-model")
 const { StatusCodes } = require("http-status-codes")
 
 const allLog = asyncHandler(async(req, res) => {
-    const { start_date, end_date } = req.body
+    const { start_date, end_date, filter } = req.body
     let user;
     user = await User.findOne({ _id: req.info.id.id })
     let driver = { msg: "No assigned driver yet!!!" }
@@ -32,6 +32,9 @@ const allLog = asyncHandler(async(req, res) => {
     query.vehicle = vehicle_exist._id
     if (start_date && end_date) {
         query.updatedAt = { $gte: `${start_date}T00:00:00.000Z`, $lte: `${end_date}T23:59:59.999Z` }
+    }
+    if (filter) {
+        query.filter = filter
     }
     const allLogs = await DailyLog.find(query)
 

@@ -34,28 +34,48 @@ const oneUser = asyncHandler(async(req, res) => {
     // now after fetching the user, we fetch all info associated with the user
     // first vehicle
     let user_vehicle;
-    user_vehicle = await Vehicle.findOne({ assigned_to: { $in: [user._id] } })
+    let vehicle_owner;
+    let assigned_driver;
+    let maint_log = [];
+    let planned_maint = [];
+    let daily_log = [];
+
+    if (user.role !== "driver") {
+        user_vehicle = await Vehicle.findOne({ assigned_to: { $in: [user._id] } })
+        if (!user_vehicle || user_vehicle === null) {
+            user_vehicle = { _id: 0, msg: `Unfortunately, no Vehicle has been assigned to user yet!!!` };
+            maint_log.push({ err: `Error... No maintenance log available!!!` })
+            planned_maint.push({ err: `Error... No planned maintenance log available!!!` })
+            daily_log.push({ err: `Error... No daily vehicle log available!!!` })
+        }
+        // if (!user_vehicle.driver || user_vehicle.driver === null) {
+        //     vehicle_owner = { msg: `Error, vehicle not assigned to user yet!!!` };
+        // }
+        if (user_vehicle._id !== 0) {
+            maint_log = await MaintLog.find({ vehicle: user_vehicle._id })
+            planned_maint = await PlannedMaint.find({ vehicle: user_vehicle._id })
+            daily_log = await DailyLog.find({ vehicle: user_vehicle._id })
+        }
+        if (user.driver) {
+            assigned_driver = await User.findOne({ _id: user.driver })
+            if (!assigned_driver) {
+                assigned_driver = { err: `Error... Driver not found!!!` }
+            }
+        }
+
+        return res.status(200).json({ user: user, assigned_driver: assigned_driver, user_vehicle: user_vehicle, maint_log: maint_log, planned_maint: planned_maint, daily_logs: daily_log })
+    }
+
     if (user.role === "driver") {
         const vehicle_owner = await User.findOne({ driver: user._id })
         if (!vehicle_owner) {
-            return res.status(404).json({ err: `Error... Driver not assigned yet!!!` })
+            return res.status(404).json({ err: `Unfortunately, you're not assigned yet!!!` })
         }
         user_vehicle = await Vehicle.findOne({ assigned_to: { $in: [vehicle_owner._id] } })
+
+        return res.status(200).json({ user: user, user_vehicle: user_vehicle, nbMaintLog: maint_log.length, maint_log: maint_log, nbPlannedMaint: planned_maint.length, planned_maint: planned_maint, nbDailyLog: daily_log.length, daily_logs: daily_log })
     }
-    if (!user_vehicle) {
-        return res.status(404).json({ err: `Unfortunately, no vehicle has been assigned to user yet!!!` })
-    }
 
-    // maintenance logs
-    const maintenance_log = await MaintLog.find({ vehicle: user_vehicle._id })
-
-    // planned maintenance
-    const planned_maint = await PlannedMaint.find({ vehicle: user_vehicle._id })
-
-    // Daily Driver's log
-    const daily_log = await DailyLog.find({ vehicle: user_vehicle._id })
-
-    res.status(200).json({ user: user, user_vehicle: user_vehicle, nbMaintLog: maintenance_log.length, maint_log: maintenance_log, nbPlannedMaint: planned_maint.length, planned_maint: planned_maint, nbDailyLog: daily_log.length, daily_logs: daily_log })
 })
 
 const filterUsers = asyncHandler(async(req, res) => {

@@ -88,7 +88,7 @@
       2. Get all maintenance log [GET request] => /api/maint-log/all-maint-log
          ## Required Info
          1. Bearer Token
-         2. 1. vehicle_id, 2. start_date 3. end_date
+         2. 1. start_date 2. end_date
       3. Edit maintenance log [PATCH request] => /api/maint-log/edit-maint-log
          ## Required Info
          1. Bearer Token
