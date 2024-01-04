@@ -137,7 +137,7 @@ const oneUser = asyncHandler(async(req, res) => {
 
         }
 
-        return res.status(200).json({ loggedInUser: user, vehicle_assignee: vehicle_owner, assigned_driver: user, user_vehicle: user_vehicle, maint_log: maint_log, planned_maint: planned_maint, daily_logs: daily_log })
+        return res.status(200).json({ loggedInUser: user, vehicle_assignee: vehicle_owner, assigned_driver: user, dashboard: dashboard_info, user_vehicle: user_vehicle, maint_log: maint_log, planned_maint: planned_maint, daily_logs: daily_log })
 
     }
 
