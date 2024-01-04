@@ -80,7 +80,7 @@ const newLog = asyncHandler(async(req, res) => {
 
     const newDailyLog = await DailyLog.create(req.body)
 
-    await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { current_mileage: current_mileage, daily_mileage: daily_mileage, $push: { daily_log: newDailyLog._id } }, { new: true, runValidators: true })
+    await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { current_mileage: current_mileage, daily_mileage: daily_mileage, current_location: endingLocation, $push: { daily_log: newDailyLog._id } }, { new: true, runValidators: true })
 
     return res.status(200).json({ msg: `Vehicle log created and added successfully...`, dailyLog: newDailyLog })
 

@@ -7,6 +7,7 @@ const vehicleSchema = new mongoose.Schema({
     vehicle_color: { type: String, required: true, trim: true },
     chasis_no: { type: String, required: true, trim: true },
     manufacture_year: { type: String, trim: true },
+    current_location: { type: String, trim: true, default: "Akure,Ondo state" },
     vehicle_image: { type: String, trim: true, default: "https://images.pexels.com/photos/120049/pexels-photo-120049.jpeg?auto=compress&cs=tinysrgb&w=600" },
     plate_no: { type: String, required: true, trim: true }, // this is unique
     service_mileage: { type: String, trim: true, default: '00000' }, // this should only be entered manually once

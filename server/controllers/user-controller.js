@@ -39,19 +39,23 @@ const oneUser = asyncHandler(async(req, res) => {
     let maint_log = [];
     let planned_maint = [];
     let daily_log = [];
+    let dashboard_info = {}
 
     if (user.role !== "driver") {
         user_vehicle = await Vehicle.findOne({ assigned_to: { $in: [user._id] } })
         if (!user_vehicle || user_vehicle === null) {
             user_vehicle = { _id: 0, msg: `Unfortunately, no Vehicle has been assigned to user yet!!!` };
-            maint_log.push({ err: `Error... No maintenance log available!!!` })
-            planned_maint.push({ err: `Error... No planned maintenance log available!!!` })
-            daily_log.push({ err: `Error... No daily vehicle log available!!!` })
+            maint_log.push({ _id: 0, err: `Error... No maintenance log available!!!` })
+            planned_maint.push({ _id: 0, err: `Error... No planned maintenance log available!!!` })
+            daily_log.push({ _id: 0, err: `Error... No daily vehicle log available!!!` })
+
         }
         if (user_vehicle._id !== 0) {
             maint_log = await MaintLog.find({ vehicle: user_vehicle._id })
             planned_maint = await PlannedMaint.find({ vehicle: user_vehicle._id })
             daily_log = await DailyLog.find({ vehicle: user_vehicle._id })
+
+
         }
         if (user.driver === null) {
             assigned_driver = { err: `Error... Driver not assigned yet!!!` }
@@ -62,6 +66,8 @@ const oneUser = asyncHandler(async(req, res) => {
                 assigned_driver = { err: `Error... Driver not found!!!` }
             }
         }
+
+
 
         return res.status(200).json({ loggedInUser: user, vehicle_assignee: user, assigned_driver: assigned_driver, user_vehicle: user_vehicle, maint_log: maint_log, planned_maint: planned_maint, daily_logs: daily_log })
     }
@@ -99,6 +105,36 @@ const oneUser = asyncHandler(async(req, res) => {
             if (!assigned_driver) {
                 assigned_driver = { err: `Error... Driver not found!!!` }
             }
+        }
+
+        if (user_vehicle._id !== 0) {
+            // dashboard info when vehicle exist
+            dashboard_info.major_maint_job = maint_log.length
+            dashboard_info.current_location = user_vehicle.current_location
+            dashboard_info.total_mileage = user_vehicle.current_mileage;
+            dashboard_info.last_recorded_mileage = user_vehicle.daily_mileage
+            if (maint_log.length === 0) {
+                dashboard_info.last_recorded_maint = "No maintenance log yet."
+            }
+            dashboard_info.last_recorded_maint = maint_log.createdAt
+            if (!planned_maint.length) {
+
+                dashboard_info.next_maint_date = "34 Jan, 2024"
+            }
+            if (planned_maint.length) {
+                dashboard_info.next_maint_date = planned_maint.proposedTime
+            }
+        }
+
+        if (user_vehicle._id === 0) {
+            // dashboared info when no vehicle exist
+            dashboard_info.major_maint_job = "0000"
+            dashboard_info.current_location = "Nil"
+            dashboard_info.total_mileage = "0000";
+            dashboard_info.last_recorded_mileage = "0000"
+            dashboard_info.last_recorded_maint = "Nil"
+            dashboard_info.next_maint_date = "Nil"
+
         }
 
         return res.status(200).json({ loggedInUser: user, vehicle_assignee: vehicle_owner, assigned_driver: user, user_vehicle: user_vehicle, maint_log: maint_log, planned_maint: planned_maint, daily_logs: daily_log })
