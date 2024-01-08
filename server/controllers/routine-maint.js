@@ -90,7 +90,11 @@ setInterval(() => {
 const routineBrakeInspection = asyncHandler(async(req, res) => {
 
 })
-module.exports = { engineOilChange, genVehicleService, routineBrakeInspection, }
+
+const remindMaintPersonnel = asyncHandler(async(req, res) => {
+
+})
+module.exports = { engineOilChange, genVehicleService, routineBrakeInspection, remindMaintPersonnel }
 
 //oil change 5 - 10k = 7.5
 //Tire rotation = 6k - 8k = 7
