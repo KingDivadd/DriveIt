@@ -25,7 +25,6 @@ const planMaint = asyncHandler(async(req, res) => {
         auth = true
     }
 
-    console.log('assigned to ', Array.isArray(assignedTo))
     if (assignedTo.length) {
         assignedTo.forEach(async(data, ind) => {
             if (String(data) === req.info.id.id) {

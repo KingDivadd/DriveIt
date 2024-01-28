@@ -8,7 +8,7 @@ const { StatusCodes } = require('http-status-codes')
 
 // code generation
 function uniqueCode() {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const characters = '0123456789';
     let randomString = '';
 
     for (let i = 0; i < 6; i++) {
