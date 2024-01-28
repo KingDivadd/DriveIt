@@ -50,7 +50,6 @@ const signUp = asyncHandler(async(req, res) => {
     sendEmail("Account Createion", { firstName: newUser.firstName, info: "Welcome to FUTA OptiDrive. A platform for managing futa's official fleet of vehicles...", code: '' }, email)
 })
 
-
 const signIn = asyncHandler(async(req, res) => {
         const { email_staffId, password } = req.body
 

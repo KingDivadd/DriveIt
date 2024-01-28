@@ -16,19 +16,22 @@ const planMaint = asyncHandler(async(req, res) => {
     let auth = false
     const assignedTo = vehicleExist.assigned_to
 
+
     if (req.info.id.role !== "vehicle_coordinator" && !assignedTo.length) {
-        return res.status(500).json({ err: `Error... You're not assigned to plan maintenance for this vehicle!!!` })
+        return res.status(401).json({ err: `Error... You're not authorized to plan maintenance for this vehicle!!!` })
     }
 
     if (req.info.id.role === "vehicle_coordinator") {
         auth = true
     }
+
+    console.log('assigned to ', Array.isArray(assignedTo))
     if (assignedTo.length) {
-        assignedTo.foreach(async(data, ind) => {
-            if (data === req.info.id.id) {
+        assignedTo.forEach(async(data, ind) => {
+            if (String(data) === req.info.id.id) {
                 auth = true
             }
-            const user = await User.findOne({ _id: data })
+            const user = await User.findOne({ _id: String(data) })
             if (user.driver === req.info.id.id) {
                 auth = true
             }
