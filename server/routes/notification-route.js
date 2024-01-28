@@ -5,5 +5,5 @@ const tokenDecoder = require('../middleware/auth-middleware')
 
 
 router.route('/all-notifications').get(tokenDecoder, allNotifications)
-router.route('/filter-notifications').get(tokenDecoder, filterNotifications)
+router.route('/filter-notifications').post(tokenDecoder, filterNotifications)
 module.exports = router
