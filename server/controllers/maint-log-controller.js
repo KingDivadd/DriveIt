@@ -82,6 +82,9 @@ const editPlannedMaint = asyncHandler(async(req, res) => {
 
 const allPlannedMaint = asyncHandler(async(req, res) => {
     const { vehicle, start_date, end_date } = req.body
+    if (!vehicle) {
+        return res.status(500).json({ err: `Please provide vehicle's id!!!` })
+    }
     const vehicleExist = await Vehicle.findOne({ _id: vehicle })
     if (!vehicleExist) {
         return res.status(404).json({ err: `Error... Vehicle not found!!!` })
@@ -94,6 +97,25 @@ const allPlannedMaint = asyncHandler(async(req, res) => {
     const allPlannedMaint = await PlanMaint.find(query)
     return res.status(200).json({ nbHit: allPlannedMaint.length, allPlannedMaint: allPlannedMaint })
 
+})
+
+const onePlannedMaint = asyncHandler(async(req, res) => {
+    const { id } = req.params
+
+    if (!id) {
+        return res.status(500).json({ err: `Error... Please select a maintenance log to view related info.` })
+    }
+    const user = await User.findOne({ _id: req.info.id.id })
+    const maintExist = await PlanMaint.findOne({ _id: id, })
+    console.log(user.vehicle, maintExist.vehicle)
+    if ((!user.vehicle || String(user.vehicle) !== String(maintExist.vehicle)) && (req.info.id.id !== 'maintenance_personnel' || req.info.id.id !== 'vehicle_coordinator')) {
+        return res.status(401).json({ err: `Error... You are not authorized to access maint log!!!` })
+    }
+    const maintLog = await PlanMaint.findOne({ _id: id })
+    if (!maintLog) {
+        return res.status(404).json({ err: `Selected maintenance log not found or has been deleted.` })
+    }
+    return res.status(200).json({ msg: `Fetching log...`, maint_log: maintLog })
 })
 
 const allVehicleMaintLog = asyncHandler(async(req, res) => {
@@ -201,4 +223,4 @@ const editVehicleMaintLog = asyncHandler(async(req, res) => {
 
 
 
-module.exports = { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog, planMaint, editPlannedMaint, allPlannedMaint }
+module.exports = { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog, planMaint, editPlannedMaint, allPlannedMaint, onePlannedMaint }
