@@ -53,23 +53,25 @@ const allLog = asyncHandler(async(req, res) => {
     }
 })
 
+// the info that should be persisted to the vehicle should be inthe evening when the endingMileage has been entered.
 const newLog = asyncHandler(async(req, res) => {
-    const { vehicle_id, startingLocation, endingLocation, route, startingMileage, endingMileage, fuelLevel } = req.body
+    const { vehicle_id, currentLocation, startingMileage, endingMileage, startingFuelLevel, endingFuelLevel, logTime } = req.body
     if (!vehicle_id) {
         return res.status(500).json({ err: `Error... Please select a vehicle!!!` })
+    }
+    if (!logTime) {
+        return res.status(500).json({ err: `Please select log time, morning or evening.` })
     }
 
     const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
     if (!vehicleExist) {
-        return res.status(404).json({ err: `Error... Vehicle with ID ${vehicle_id} not found!!!` })
+        return res.status(404).json({ err: `Error... Vehicle not found!!!` })
     }
-    if (!startingLocation || !endingLocation || !startingMileage || !endingMileage || !fuelLevel) {
-        return res.status(500).json({ err: `Please fill all fields!!!` })
-    }
+
     let auth = false
     const assignedTo = vehicleExist.assigned_to
     assignedTo.forEach(async(data, ind) => {
-        if (data === req.info.id.id) {
+        if (String(data) === req.info.id.id) {
             auth = true
         }
         const user = await User.findOne({ _id: data })
@@ -84,24 +86,39 @@ const newLog = asyncHandler(async(req, res) => {
     // Now store
     req.body.vehicle = vehicle_id
     req.body.addedBy = req.info.id.id
-    const dailyMileage = Number(endingMileage) - Number(startingMileage)
-    req.body.dailyMileage = dailyMileage.toLocaleString()
 
-    const current_mileage = Number(endingMileage).toLocaleString()
     const mileage_diff = Number(endingMileage) - Number(startingMileage)
     const daily_mileage = mileage_diff.toLocaleString()
 
+    let current_mileage;
+    console.log(logTime, logTime.trim())
+    if (logTime.trim() === "morning") {
+        req.body.endingFuelLevel = ""
+        req.body.endingMileage = ""
+        current_mileage = Number(startingMileage).toLocaleString()
+    }
+    if (logTime.trim() === "evening") {
+        req.body.startingFuelLevel = ""
+        req.body.startingMileage = ""
+        current_mileage = Number(endingMileage).toLocaleString()
+
+    }
     const newDailyLog = await DailyLog.create(req.body)
 
-    await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { current_mileage: current_mileage, daily_mileage: daily_mileage, current_location: endingLocation, $push: { daily_log: newDailyLog._id } }, { new: true, runValidators: true })
+    await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { current_mileage: current_mileage, daily_mileage: daily_mileage, current_location: currentLocation, $push: { daily_log: newDailyLog._id } }, { new: true, runValidators: true })
 
     return res.status(200).json({ msg: `Vehicle log created and added successfully...`, dailyLog: newDailyLog })
 
 })
 
 const editLog = asyncHandler(async(req, res) => {
-    const { log_id, startingLocation, endingLocation, route, startingMileage, endingMileage } = req.body
-
+    const { log_id, currentLocation, startingMileage, endingMileage, startingFuelLevel, endingFuelLevel, logTime } = req.body
+    if (!log_id) {
+        return res.status(500).json({ err: `Please provide the log's id!!!` })
+    }
+    if (!logTime) {
+        return res.status(500).json({ err: `Please select a log time. morning or evening.` })
+    }
     const logExist = await DailyLog.findOne({ _id: log_id })
     if (!logExist) {
         return res.status(404).json({ err: `Error... Vehicle with ID ${log_id} not found!!!` })
@@ -110,7 +127,7 @@ const editLog = asyncHandler(async(req, res) => {
     let auth = false
     const assignedTo = vehicle.assigned_to
     assignedTo.forEach(async(data, ind) => {
-        if (data === req.info.id.id) {
+        if (String(data) === req.info.id.id) {
             auth = true
         }
         const user = await User.findOne({ _id: data })
@@ -122,20 +139,13 @@ const editLog = asyncHandler(async(req, res) => {
         return res.status(401).json({ err: `Error... Only staffs assigned to a vehicle are allowed to delete vehicle logs!!!` })
     }
 
-    if (startingMileage && endingMileage) {
-        const mileage_diff = Number(endingMileage) - Number(startingMileage)
-        const daily_mileage = mileage_diff.toLocaleString()
-        const current_mileage = Number(endingMileage).toLocaleString()
-        await Vehicle.findOneAndUpdate({ _id: logExist.vehicle }, { current_mileage, daily_mileage }, { new: true, runValidators: true })
-        await DailyLog.findOneAndUpdate({ _id: log_id }, { dailyMileage: daily_mileage }, { new: true, runValidators: true })
-    }
     if (startingMileage && !endingMileage) {
         const startingMileage = Number(vehicle.current_mileage.replace(/,/g, '')) - Number(vehicle.daily_mileage.replace(/,/g, ''))
         const mileage_diff = Number(endingMileage) - Number(startingMileage)
         const daily_mileage = mileage_diff.toLocaleString()
         const current_mileage = Number(endingMileage).toLocaleString()
         await Vehicle.findOneAndUpdate({ _id: logExist.vehicle }, { current_mileage, daily_mileage }, { new: true, runValidators: true })
-        await DailyLog.findOneAndUpdate({ _id: log_id }, { dailyMileage: daily_mileage }, { new: true, runValidators: true })
+        await DailyLog.findOneAndUpdate({ _id: log_id }, { startingMileage }, { new: true, runValidators: true })
     }
     if (!startingMileage && endingMileage) {
         const endingMileage = Number(vehicle.current_mileage.replace(/,/g, ''))
@@ -143,29 +153,35 @@ const editLog = asyncHandler(async(req, res) => {
         const daily_mileage = mileage_diff.toLocaleString()
         const current_mileage = Number(endingMileage).toLocaleString()
         await Vehicle.findOneAndUpdate({ _id: logExist.vehicle }, { current_mileage, daily_mileage }, { new: true, runValidators: true })
-        await DailyLog.findOneAndUpdate({ _id: log_id }, { dailyMileage: daily_mileage }, { new: true, runValidators: true })
+        await DailyLog.findOneAndUpdate({ _id: log_id }, { endingMileage }, { new: true, runValidators: true })
     }
 
+
     let update = {}
-    if (startingLocation) {
-        update.startingLocation = startingLocation
+    if (startingMileage.trim() !== '') {
+        update.startingMileage = startingMileage.trim()
     }
-    if (endingLocation) {
-        update.endingLocation = endingLocation
+    if (endingMileage.trim() !== '') {
+        update.endingMileage = endingMileage.trim()
     }
-    if (route) {
-        update.route = route
+    if (currentLocation.trim() !== "") {
+        update.currentLocation = currentLocation.trim()
     }
-    if (startingMileage) {
-        update.startingMileage = startingMileage
+    if (logTime.trim() !== '') {
+        update.logTime = logTime.trim()
     }
-    if (endingMileage) {
-        update.endingMileage = endingMileage
+    if (startingFuelLevel.trim() !== 0) {
+        update.startingFuelLevel = startingFuelLevel.trim()
     }
-    const updatedLog = await DailyLog.findOneAndUpdate({ _id: log_id }, { update }, { new: true, runValidators: true })
+    if (endingFuelLevel.trim() !== 0) {
+        update.endingFuelLevel = endingFuelLevel.trim()
+    }
+    console.log(update)
+    const updatedLog = await DailyLog.findOneAndUpdate({ _id: log_id }, { $set: update }, { new: true, runValidators: true })
     return res.status(200).json({ msg: `Vehicle log updated successfully...`, updatedLog: updatedLog })
 
 })
+
 
 const deleteLog = asyncHandler(async(req, res) => {
     const { log_id } = req.body
