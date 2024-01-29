@@ -176,7 +176,6 @@ const editLog = asyncHandler(async(req, res) => {
     if (endingFuelLevel.trim() !== 0) {
         update.endingFuelLevel = endingFuelLevel.trim()
     }
-    console.log(update)
     const updatedLog = await DailyLog.findOneAndUpdate({ _id: log_id }, { $set: update }, { new: true, runValidators: true })
     return res.status(200).json({ msg: `Vehicle log updated successfully...`, updatedLog: updatedLog })
 
