@@ -9,6 +9,9 @@ const PlanMaint = require("../model/plan-maint-model")
 //services is an array and concerns is string
 const planMaint = asyncHandler(async(req, res) => {
     const { vehicle, services, concerns, proposedDate } = req.body
+    if (!vehicle || !proposedDate || !services.length || !concerns.length) {
+        return res.status(500).json({ err: `Error... Please fill all fields!!!` })
+    }
     const vehicleExist = await Vehicle.findOne({ _id: vehicle })
     if (!vehicleExist) {
         return res.status(404).json({ err: `Error... Vehicle not found!!!` })
@@ -43,11 +46,10 @@ const planMaint = asyncHandler(async(req, res) => {
         return res.status(500).json({ err: `Error... Please provide necessary informations to plan maintenance!!!` })
     }
     req.body.plannedBy = req.info.id.id
-    req.body.proposedDate = { $gte: `${proposedDate}T00:00:00.000Z`, $lte: `${proposedDate}T23:59:59.999Z` }
 
     const newPlannedMaint = await PlanMaint.create(req.body)
 
-    await Vehicle.findOneAndUpdate({ _id: vehicle }, { $push: { planned_maint_logs: newPlannedMaint } }, { new: true, runValidators: true })
+    await Vehicle.findOneAndUpdate({ _id: vehicle }, { $push: { planned_maint: newPlannedMaint } }, { new: true, runValidators: true })
 
     await Notification.create({ title: `New Planned Maintenance`, access: `vehicle_assignee`, createdBy: req.info.id.id, message: `You've successfully created a maintenance plan.`, vehicleInfo: vehicle, planMaintInfo: newPlannedMaint._id })
 
@@ -58,7 +60,7 @@ const planMaint = asyncHandler(async(req, res) => {
 })
 
 const editPlannedMaint = asyncHandler(async(req, res) => {
-    const { planMaintLog, services, concerns, proposedDate } = req.body
+    const { planMaintLog, services, concerns, proposedDate, status } = req.body
     const planMaintExist = await PlanMaint.findOne({ _id: planMaintLog })
     if (!planMaintExist) {
         return res.status(200).json({ err: `Error... Planned Maintenance log not found!!!` })
@@ -70,7 +72,15 @@ const editPlannedMaint = asyncHandler(async(req, res) => {
     if (concerns.length) {
         update.concerns = concerns
     }
-    req.body.proposedDate = { $gte: `${proposedDate}T00:00:00.000Z`, $lte: `${proposedDate}T23:59:59.999Z` }
+    if (proposedDate.trim() !== '') {
+        update.proposedDate = proposedDate.trim()
+    }
+    if (status.trim() !== '') {
+        if (['pending', 'in-shop', 'in-progress', 'completed'].includes(status) === false) {
+            return res.status(500).json({ err: `Error... Check your code. the allowed enums are 'pending', 'in-shop', 'in-progress', and 'completed'` })
+        }
+        update.status = status.trim()
+    }
     const updatePlanMaint = await PlanMaint.findOneAndUpdate({ _id: planMaintLog }, { $set: update }, { new: true, runValidators: true })
 
     await Notification.findOneAndUpdate({ planMaintInfo: planMaintLog }, { title: `Updated Planned Maintenance`, message: `You've successfully updated the maintenance plan.`, }, { new: true, runValidators: true })

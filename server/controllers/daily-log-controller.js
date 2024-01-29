@@ -20,6 +20,13 @@ const allLog = asyncHandler(async(req, res) => {
             return res.status(404).json({ err: `Driver not found` })
         }
     }
+    if (req.info.id.role !== 'driver') {
+        // now the user is already logged in and is not a driver
+        driver = await User.findOne({ _id: user.driver })
+        if (!driver) {
+            driver = { msg: "No assigned driver yet!!!" }
+        }
+    }
     if (!user.vehicle) {
         return res.status(500).json({ msg: `No vehicle assigned to user yet!!!` })
     }
@@ -38,8 +45,14 @@ const allLog = asyncHandler(async(req, res) => {
     }
     const allLogs = await DailyLog.find(query)
 
-    return res.status(200).json({ nbHit: allLogs.length, dailyLogs: allLogs, assignedDriver: driver })
+    if (req.info.id.role !== 'driver') {
+        return res.status(200).json({ nbHit: allLogs.length, dailyLogs: allLogs, assignedDriver: driver })
+    }
+    if (req.info.id.role === 'driver') {
+        return res.status(200).json({ nbHit: allLogs.length, dailyLogs: allLogs, vehicleOwner: user })
+    }
 })
+
 const newLog = asyncHandler(async(req, res) => {
     const { vehicle_id, startingLocation, endingLocation, route, startingMileage, endingMileage, fuelLevel } = req.body
     if (!vehicle_id) {

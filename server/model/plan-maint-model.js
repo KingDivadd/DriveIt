@@ -5,7 +5,8 @@ const planMaintSchema = new mongoose.Schema({
     services: [{ type: String, required: true, trim: true }],
     concerns: [{ type: String, required: true, trim: true }],
     plannedBy: { type: mongoose.Types.ObjectId, ref: "User", required: true },
-    proposedTime: { type: Date, default: new Date() }
+    proposedDate: { type: String, required: true, trim: true },
+    status: { type: String, enum: ['pending', 'in-shop', 'in-progress', 'completed'], default: 'pending' }
 }, { timestamps: true })
 
 module.exports = mongoose.model("plannedMaint", planMaintSchema)
