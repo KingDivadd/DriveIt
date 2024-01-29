@@ -7,7 +7,7 @@ const allNotifications = asyncHandler(async(req, res) => {
     const vehAssNotif = await Notification.find({ access: 'vehcle_assignee' })
     const adminNotif = await Notification.find({ access: 'admin' })
     const maintNotif = await Notification.find({ access: 'maintenance_personnel' })
-    res.status(200).json({ authorization: 'Admin', adminNotif: adminNotif, authorization: 'Vehicle Assignees', vehAssNotif: vehAssNotif, authorization: 'Maintenance_Personnel', maintNotif: maintNotif })
+    res.status(200).json({ adminNotification: adminNotif, vehAssNotification: vehAssNotif, maintNotification: maintNotif })
 })
 
 const filterNotifications = asyncHandler(async(req, res) => {
