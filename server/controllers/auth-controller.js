@@ -88,7 +88,7 @@ const recoveryCode = asyncHandler(async(req, res) => {
     let genCode = uniqueCode()
     const userAuth = await Auth.findOneAndUpdate({ userId: verifyEmail._id }, { uniqueCode: genCode }, { new: true, runValidators: true }).select('userId uniqueCode')
     sendEmail("DrivIt-confirmation", { firstName: verifyEmail.firstName, info: "Here's your password recovery code", code: genCode }, email)
-    res.status(200).json({ msg: 'Recovery code generated and sent successfylly...', info: userAuth })
+    res.status(200).json({ msg: 'Recovery code generated and sent successfully...', info: userAuth })
 
 
 
