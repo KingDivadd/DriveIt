@@ -47,6 +47,28 @@ const planMaint = asyncHandler(async(req, res) => {
     }
     req.body.plannedBy = req.info.id.id
 
+    const maint_id = await PlanMaint.find({ vehicle: vehicle })
+    console.log(maint_id)
+    let maint_id_box = []
+    if (maint_id.length) {
+        maint_id.forEach((data, ind) => {
+            let id = data.maint_id
+            let split_id = id.split('-')
+            let newId = split_id[split_id.length - 1]
+            maint_id_box.push(Number(newId.replace(/,/g, '')))
+        });
+        console.log(maint_id_box)
+
+        latest_maint_id = Math.max(...maint_id_box)
+        let maint_idd = latest_maint_id + 1
+        let new_maint_id = String(maint_idd).padStart(4, "0")
+        let prefix = 'FUTWORKS-'
+        req.body.maint_id = prefix.concat(new_maint_id)
+    }
+    if (!maint_id.length) {
+        req.body.maint_id = "FUTWORKS-0001"
+    }
+
     const newPlannedMaint = await PlanMaint.create(req.body)
 
     await Vehicle.findOneAndUpdate({ _id: vehicle }, { $push: { planned_maint: newPlannedMaint } }, { new: true, runValidators: true })
