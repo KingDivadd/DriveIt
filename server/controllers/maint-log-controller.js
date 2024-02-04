@@ -9,7 +9,7 @@ const PlanMaint = require("../model/plan-maint-model")
 //services is an array and concerns is string
 const planMaint = asyncHandler(async(req, res) => {
     const { vehicle, services, concerns, proposedDate } = req.body
-    if (!vehicle || !proposedDate || !services.length || !concerns.length) {
+    if (!vehicle || !proposedDate || !services.length || !concerns) {
         return res.status(500).json({ err: `Error... Please fill all fields!!!` })
     }
     const vehicleExist = await Vehicle.findOne({ _id: vehicle })
@@ -42,7 +42,7 @@ const planMaint = asyncHandler(async(req, res) => {
     if (!auth) {
         return res.status(401).json({ err: `Error... not authorized to plan maintenance!!!` })
     }
-    if (!services.length || !concerns.length) {
+    if (!services.length || !concerns) {
         return res.status(500).json({ err: `Error... Please provide necessary informations to plan maintenance!!!` })
     }
     req.body.plannedBy = req.info.id.id
@@ -69,8 +69,8 @@ const editPlannedMaint = asyncHandler(async(req, res) => {
     if (services.length) {
         update.services = services
     }
-    if (concerns.length) {
-        update.concerns = concerns
+    if (concerns.trim() !== "") {
+        update.concerns = concerns.trim()
     }
     if (proposedDate.trim() !== '') {
         update.proposedDate = proposedDate.trim()
