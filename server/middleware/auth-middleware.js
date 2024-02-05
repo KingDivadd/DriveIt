@@ -11,10 +11,10 @@ const tokenDecoder = (req, res, next) => {
             req.info = { id, firstName, lastName, pic, email, role, plate_no, engine_no }
             next()
         } catch (err) {
-            res.status(500).json({ msg: "Not authorized to access this route" })
+            res.status(500).json({ err: "Not authorized to access this route" })
         }
     } else {
-        res.status(500).json({ msg: "No token provided" })
+        res.status(500).json({ err: "No token provided" })
     }
 }
 
