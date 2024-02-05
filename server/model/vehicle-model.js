@@ -23,7 +23,7 @@ const vehicleSchema = new mongoose.Schema({
     planned_maint: [{ type: mongoose.Types.ObjectId, ref: "plannedMaint" }],
     daily_log: [{ type: mongoose.Types.ObjectId, ref: "Daily_Log" }],
     location: { type: mongoose.Types.ObjectId, ref: "Location" },
-    transmisson: { type: String, enum: ['automatic', 'manuel'], }
+    transmission: { type: String, enum: ['automatic', 'manual'], default: 'manual' }
 }, { timestamps: true })
 
 
