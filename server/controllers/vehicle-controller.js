@@ -16,7 +16,7 @@ const addVehicle = asyncHandler(async(req, res) => {
     if (req.info.id.role !== "vehicle_coordinator") {
         return res.status(StatusCodes.UNAUTHORIZED).json({ err: "Error. You're not authorized to perform this operation!!!" })
     }
-    if (!brand || !vehicle_name || !fuel_type || !vehicle_color || !chasis_no || !manufacture_year || !plate_no || !current_mileage || !engine_no || !vehicle_type || !transmisson) {
+    if (!brand || !vehicle_name || !fuel_type || !vehicle_color || !chasis_no || !manufacture_year || !plate_no || !current_mileage || !engine_no || !vehicle_type || !transmission) {
         res.status(500).json({ err: "Please provide all vehicle information!!!" })
     }
     // check if a vehicle with the entered plate number exist

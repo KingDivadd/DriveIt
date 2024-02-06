@@ -8,7 +8,7 @@ router.route('/user-vehicle').post(tokenDecoder, userVehicle)
 router.route('/delete-vehicle').delete(tokenDecoder, deleteVehicle)
 router.route('/assign-vehicle').patch(tokenDecoder, assignVehicle)
 router.route('/deassign-vehicle').patch(tokenDecoder, deassignVehicle)
-router.route('/all-vehicles').get(tokenDecoder, getAllVehicles)
+router.route('/all-vehicles').post(tokenDecoder, getAllVehicles)
 router.route('/add-vehicle').post(tokenDecoder, addVehicle)
 
 module.exports = router
