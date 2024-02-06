@@ -7,7 +7,7 @@ const Notification = require('../model/notification-model')
 
 const newIncedent = asyncHandler(async(req, res) => {
     const { vehicle_id, location, description, image } = req.body
-    if (!location || !description || !image) {
+    if (!location || !description || !image.length) {
         return res.status(500).json({ err: `Please fill all fields!!!` })
     }
     if (req.info.id.role === 'driver') {
