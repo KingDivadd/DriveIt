@@ -68,7 +68,7 @@ const oneUser = asyncHandler(async(req, res) => {
 
         if (user_vehicle._id !== 0) {
             // dashboard info when vehicle exist
-            dashboard_info.major_maint_job = maint_log.length
+            dashboard_info.major_maint_job = (Number(maint_log.length) + Number(planned_maint.length)).toLocaleString()
             dashboard_info.current_location = user_vehicle.current_location
             dashboard_info.total_mileage = user_vehicle.current_mileage;
             dashboard_info.last_recorded_mileage = user_vehicle.daily_mileage
@@ -137,7 +137,7 @@ const oneUser = asyncHandler(async(req, res) => {
 
         if (user_vehicle._id !== 0) {
             // dashboard info when vehicle exist
-            dashboard_info.major_maint_job = maint_log.length
+            dashboard_info.major_maint_job = (Number(maint_log.length) + Number(planned_maint.length)).toLocaleString()
             dashboard_info.current_location = user_vehicle.current_location
             dashboard_info.total_mileage = user_vehicle.current_mileage;
             dashboard_info.last_recorded_mileage = user_vehicle.daily_mileage
