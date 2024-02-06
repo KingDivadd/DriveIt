@@ -68,6 +68,7 @@ const newLog = asyncHandler(async(req, res) => {
         return res.status(404).json({ err: `Error... Vehicle not found!!!` })
     }
 
+    // now we want to ensure only drivers, vehicle_assignees attached to the vehicles can create log.
     let auth = false
     const assignedTo = vehicleExist.assigned_to
     assignedTo.forEach(async(data, ind) => {

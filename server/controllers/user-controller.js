@@ -29,7 +29,7 @@ const getUsers = asyncHandler(async(req, res) => {
 const oneUser = asyncHandler(async(req, res) => {
     const user = await User.findOne({ _id: req.info.id.id })
     if (!user) {
-        return res.status(404).json({ err: `Error... User not found!!!` })
+        return res.status(404).json({ err: `User not found!!!` })
     }
     // now after fetching the user, we fetch all info associated with the user
     // first vehicle
@@ -45,9 +45,9 @@ const oneUser = asyncHandler(async(req, res) => {
         user_vehicle = await Vehicle.findOne({ assigned_to: { $in: [user._id] } })
         if (!user_vehicle || user_vehicle === null) {
             user_vehicle = { _id: 0, msg: `Unfortunately, no Vehicle has been assigned to user yet!!!` };
-            maint_log.push({ _id: 0, err: `Error... No maintenance log available!!!` })
-            planned_maint.push({ _id: 0, err: `Error... No planned maintenance log available!!!` })
-            daily_log.push({ _id: 0, err: `Error... No daily vehicle log available!!!` })
+            maint_log.push({ _id: 0, err: `No maintenance log available!!!` })
+            planned_maint.push({ _id: 0, err: `No planned maintenance log available!!!` })
+            daily_log.push({ _id: 0, err: `No daily vehicle log available!!!` })
 
         }
         if (user_vehicle._id !== 0) {
@@ -57,12 +57,12 @@ const oneUser = asyncHandler(async(req, res) => {
 
         }
         if (user.driver === null) {
-            assigned_driver = { err: `Error... Driver not assigned yet!!!` }
+            assigned_driver = { err: `Driver not assigned yet!!!` }
         }
         if (user.driver) {
             assigned_driver = await User.findOne({ _id: user.driver })
             if (!assigned_driver) {
-                assigned_driver = { err: `Error... Driver not found!!!` }
+                assigned_driver = { err: `Driver not found!!!` }
             }
         }
 
@@ -105,20 +105,20 @@ const oneUser = asyncHandler(async(req, res) => {
         if (!vehicle_owner) {
             vehicle_owner = { err: `Unfortunately, you are yet to be assigned!!!` }
             user_vehicle = { _id: 0, msg: `Unfortunately, no Vehicle has been assigned yet!!!` };
-            maint_log.push({ err: `Error... No maintenance log available!!!` })
-            planned_maint.push({ err: `Error... No planned maintenance log available!!!` })
-            daily_log.push({ err: `Error... No daily vehicle log available!!!` })
+            maint_log.push({ err: `No maintenance log available!!!` })
+            planned_maint.push({ err: `No planned maintenance log available!!!` })
+            daily_log.push({ err: `No daily vehicle log available!!!` })
         }
         user_vehicle = await Vehicle.findOne({ assigned_to: { $in: [vehicle_owner._id] } })
 
         if (!user_vehicle || user_vehicle === null) {
             user_vehicle = { _id: 0, msg: `Unfortunately, no Vehicle has been assigned to user yet!!!` };
             maint_log = []
-            maint_log.push({ err: `Error... No maintenance log available!!!` })
+            maint_log.push({ err: `No maintenance log available!!!` })
             planned_maint = []
-            planned_maint.push({ err: `Error... No planned maintenance log available!!!` })
+            planned_maint.push({ err: `No planned maintenance log available!!!` })
             daily_log = []
-            daily_log.push({ err: `Error... No daily vehicle log available!!!` })
+            daily_log.push({ err: `No daily vehicle log available!!!` })
         }
         if (user_vehicle._id !== 0) {
             maint_log = await MaintLog.find({ vehicle: user_vehicle._id })
@@ -126,12 +126,12 @@ const oneUser = asyncHandler(async(req, res) => {
             daily_log = await DailyLog.find({ vehicle: user_vehicle._id })
         }
         if (user.driver === null) {
-            assigned_driver = { err: `Error... Driver not assigned yet!!!` }
+            assigned_driver = { err: `Driver not assigned yet!!!` }
         }
         if (user.driver) {
             assigned_driver = await User.findOne({ _id: user.driver })
             if (!assigned_driver) {
-                assigned_driver = { err: `Error... Driver not found!!!` }
+                assigned_driver = { err: `Driver not found!!!` }
             }
         }
 
@@ -177,7 +177,7 @@ const filterUsers = asyncHandler(async(req, res) => {
 
     // Check if all filter values are empty
     // if (!firstName && !lastName && !dept && !role) {
-    //     return res.status(400).json({ msg: `Error... At least one filter must be provided` });
+    //     return res.status(400).json({ msg: `At least one filter must be provided` });
     // }
 
     const query = {};
@@ -210,7 +210,7 @@ const filterUsers = asyncHandler(async(req, res) => {
 const updateUserInfo = asyncHandler(async(req, res) => {
     const { user_id, firstName, lastName, staffId, phone, pic } = req.body
     if (user_id !== req.info.id.id) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... You're only allowed to make changes to your accout!!!` })
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `You're only allowed to make changes to your accout!!!` })
     }
 
     const update = {}
@@ -231,7 +231,7 @@ const updateUserInfo = asyncHandler(async(req, res) => {
     }
     const updateInfo = await User.findOneAndUpdate({ _id: req.info.id.id }, { $set: update }, { new: true, runValidators: true })
     if (!updateInfo) {
-        return res.status(500).json({ err: `Error... unable to update user info!!!` })
+        return res.status(500).json({ err: `unable to update user info!!!` })
     }
     await Notification.create({ access: 'vehicle_assignee', createdBy: req.info.id.id, title: 'Profile Update', message: `Your profile was updated successfully.`, })
 
@@ -247,19 +247,24 @@ const editPic = asyncHandler(async(req, res) => {
 const assignDriver = asyncHandler(async(req, res) => {
     const { assignee_id, driver_id } = req.body
     if (req.info.id.role !== 'vehicle_coordinator') {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Not Authorized to perfom this operation!!!` })
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Not Authorized to perfom this operation!!!` })
     }
     if (!assignee_id || !driver_id) {
-        return res.status(500).json({ err: `Error... Provide the Assignee and Driver's Id` })
+        return res.status(500).json({ err: `Provide the Assignee and Driver's Id` })
     }
     // check if the driver exist
     const driverExist = await User.findOne({ _id: driver_id })
     if (!driverExist) {
-        return res.status(StatusCodes.NOT_FOUND).json({ err: `Error... Driver with ID '${driver_id}' not found!!!` })
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `Driver was not found` })
+    }
+    // check if the asignee exist
+    const assigneeExist = await User.findOne({ _id: assignee_id })
+    if (!assigneeExist) {
+        return res.status(StatusCodes.NOT_FOUND).json({ err: `User not found` })
     }
     // check if the role is 'driver'
     if (driverExist.role !== 'driver') {
-        return res.status(StatusCodes.BAD_REQUEST).json({ err: `Error... User whose Id is provided is not a driver!!!` })
+        return res.status(StatusCodes.BAD_REQUEST).json({ err: `User whose Id is provided is not a driver!!!` })
     }
     // now check if driver is already assigned to a assignee, if yes remove 
     const assignee = await User.find({ driver: driver_id })
@@ -269,6 +274,12 @@ const assignDriver = asyncHandler(async(req, res) => {
     }
     // now add the driver to the newAssignee
     const newAssignee = await User.findOneAndUpdate({ _id: assignee_id }, { driver: driver_id }, { new: true, runValidators: true })
+
+    // now to update the drivers field if the vehicle assignee has a vehicle
+    if (assigneeExist.vehicle && assigneeExist.vehicle !== null) {
+        await User.findOneAndUpdate({ _id: driver_id }, { vehicle: assigneeExist.vehicle }, { new: true, runValidators: true })
+        await Vehicle.findOneAndUpdate({ _id: assigneeExist.vehicle }, { $push: { assigned_to: driver_id } }, { new: true, runValidators: true })
+    }
 
     await Notification.create({ access: 'admin', staffInfo: driver_id, createdBy: req.info.id.id, title: `Driver Assignment`, message: `A driver, ${driverExist.lastName} has been assined to ${newAssignee.lastName} successfully`, })
 
@@ -284,12 +295,12 @@ const assignDriver = asyncHandler(async(req, res) => {
 const removeDriver = asyncHandler(async(req, res) => {
     const { assignee_id } = req.body
     if (req.info.id.role !== "vehicle_coordinator") {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Error... Not AUTHORIZED to perform this operation!!!` })
+        return res.status(StatusCodes.UNAUTHORIZED).json({ err: `Not AUTHORIZED to perform this operation!!!` })
     }
     // make sure only non-drivers are subjected to these feature
     const driver = await User.findOne({ _id: assignee_id })
     if (driver.role === "driver") {
-        return res.status(500).json({ err: `Error... Drivers do not have drivers` })
+        return res.status(500).json({ err: `Drivers do not have drivers` })
     }
     // now make sure that the assignee driver is not null
     if (driver.driver === null) {
@@ -297,7 +308,7 @@ const removeDriver = asyncHandler(async(req, res) => {
     }
     const removeDriver = await User.findOneAndUpdate({ _id: assignee_id }, { driver: null }, { new: true, runValidators: true })
     if (!removeDriver) {
-        return res.status(500).json({ err: `Error... Unable to remove driver!!!` })
+        return res.status(500).json({ err: `Unable to remove driver!!!` })
     }
     await Notification.create({ access: 'admin', createdBy: req.info.id.id, title: `Driver Recall`, message: `${removeDriver.lastName}'s Driver has been recalled successfully.` })
 
@@ -309,25 +320,27 @@ const removeDriver = asyncHandler(async(req, res) => {
 
 const deleteUser = asyncHandler(async(req, res) => {
     const { user_id } = req.body
-    return res.status(200).json({ msg: `Delete feature is still under development.` })
     if (req.info.id.role !== "vehicle_coordinator") {
-        return res.status(401).json({ err: `Error... you're unauthorized to delete user!!!` })
+        return res.status(401).json({ err: `You're unauthorized to delete user!!!` })
     }
     const user_exist = await User.findOne({ _id: user_id })
     if (!user_exist) {
         return res.status(404).json({ err: "User not found!!!" })
     }
     let removeUser;
-    if (user_exist.role === "vehicle_assignee") {
-        // remove all my id from all occurances
-        const vehicle = await Vehicle.findOne({ assigned_to: { $in: [user_id] } })
-        if (vehicle) {
-            await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { $pull: { assigned_to: user_id } }, { new: true, runValidators: true })
-        }
+    // if (user_exist.role === "vehicle_assignee") {
+    //     // remove all my id from all occurances
+    //     const vehicle = await Vehicle.findOne({ assigned_to: { $in: [user_id] } })
+    //     if (vehicle) {
+    //         await Vehicle.findOneAndUpdate({ _id: vehicle_id }, { $pull: { assigned_to: user_id } }, { new: true, runValidators: true })
+    //     }
 
-        removeUser = await User.findOne({ _id: user_id })
-    }
+    //     removeUser = await User.findOne({ _id: user_id })
+    // }
     if (user_exist.role === "driver") {
+        const user = await User.findOneAndUpdate({ driver: user_id }, { $unset: { driver: user_id } }, { new: true, runValidators: true })
+        removeUser = await User.findOneAndDelete({ _id: user_id })
+        return res.status(200).json({ msg: 'User delted successfully', asignee: user })
 
     }
     if (user_exist.role === "maintenance_personnel") {
