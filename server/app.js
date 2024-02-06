@@ -15,6 +15,7 @@ const { beginTracking } = require("./controllers/location-controller")
 const imageRoute = require("./routes/image-route")
 const dailyLogRoute = require("./routes/daily-log-route")
 const notificationRoute = require("./routes/notification-route")
+const incedentReportRoute = require("./routes/incedent-report-route")
 const notFoundMiddleWare = require("./middleware/not-found-middleware")
 const errorHandlerMiddleWare = require("./middleware/error-handler-middleware")
 
@@ -64,6 +65,7 @@ app.use("/api/maint-log", maintLogRoute)
     // app.use("/api/location", locationRoute)
 app.use("/api/drivers-log", dailyLogRoute)
 app.use("/api/notification", notificationRoute)
+app.use("/api/incedents", incedentReportRoute)
 
 beginTracking()
 

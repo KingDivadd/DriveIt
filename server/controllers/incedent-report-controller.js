@@ -67,3 +67,6 @@ const allIncedentReport = asyncHandler(async(req, res) => {
     const allReport = await IncedentReport.find({ vehicle: req.body.vehicle_id })
     return res.status(200).json({ nbHit: allReport.length, incedentReports: allReport })
 })
+
+
+module.exports = { newIncedent, allIncedentReport }
