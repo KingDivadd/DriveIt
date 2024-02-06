@@ -33,6 +33,8 @@ const newIncedent = asyncHandler(async(req, res) => {
     await Notification.create({ title: "New Incedent Report creation", message: `${description}`, vehicleInfo: req.body.vehicle_id, createdBy: req.info.id.id, access: 'admin' })
         //for the vehicle assignee/driver/maint_personnel(assuming he has an assigned vehicle)
     await Notification.create({ title: "New Incedent Report creation", message: `${description}`, vehicleInfo: req.body.vehicle_id, createdBy: req.info.id.id, access: `${req.info.id.role}` })
+
+    return res.status(200).json({ msg: 'New report created', report: newReport })
 })
 
 const allIncedentReport = asyncHandler(async(req, res) => {
