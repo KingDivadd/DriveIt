@@ -54,6 +54,14 @@ const getAllVehicles = asyncHandler(async(req, res) => {
 })
 
 const userVehicle = asyncHandler(async(req, res) => {
+        const { vehicle_id } = req.body
+        if (vehicle_id) {
+            const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
+            if (!vehicleExist) {
+                return res.status(404).json({ err: `Vehicle not found!!!` })
+            }
+            return res.status(200).json({ userVehicle: vehicleExist })
+        }
         let user;
         user = await User.findOne({ _id: req.info.id.id })
         let driver = { msg: "No assigned driver yet!!!" }
