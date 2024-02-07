@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const vehicleSchema = new mongoose.Schema({
     brand: { type: String, required: true, trim: true },
     vehicle_name: { type: String, required: true, trim: true },
-    fuel_type: { type: String, trim: true, default: "pms" },
+    fuel_type: { type: String, enum: ['pms', 'diesel'], default: "pms" },
     vehicle_color: { type: String, required: true, trim: true },
     chasis_no: { type: String, required: true, trim: true },
     manufacture_year: { type: String, trim: true },
@@ -17,7 +17,7 @@ const vehicleSchema = new mongoose.Schema({
     assigned_to: [{ type: mongoose.Types.ObjectId, ref: "User" }],
     added_by: { type: mongoose.Types.ObjectId, ref: "User" },
     current_state: [{ type: String, trim: true }],
-    vehicle_type: { type: String, enum: ['bus', 'car'], default: "car" },
+    vehicle_type: { type: String, enum: ['bus', 'car', 'pickup'], default: "car" },
     department: [{ type: String, enum: ['SEET', 'SAAT', 'SEMS', 'SOS', 'SHIT'] }],
     maint_logs: [{ type: mongoose.Types.ObjectId, ref: "Maintenance_Log" }],
     planned_maint: [{ type: mongoose.Types.ObjectId, ref: "plannedMaint" }],
