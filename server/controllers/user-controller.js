@@ -172,6 +172,18 @@ const oneUser = asyncHandler(async(req, res) => {
 
 })
 
+const findUser = asyncHandler(async(req, res) => {
+    const { user_id } = req.body
+    if (!user_id) {
+        return res.status(500).json({ err: `Please provide user id.` })
+    }
+    const user = await User.findOne({ _id: user_id })
+    if (!user) {
+        return res.status(404).json({ err: `User not found.` })
+    }
+    return res.status(200).json({ user: user })
+})
+
 const filterUsers = asyncHandler(async(req, res) => {
     const { firstName, lastName, dept, role } = req.body;
 
@@ -354,4 +366,4 @@ const deleteUser = asyncHandler(async(req, res) => {
 
 })
 
-module.exports = { editPic, getUsers, updateUserInfo, allUsers, assignDriver, removeDriver, oneUser, filterUsers, deleteUser }
+module.exports = { editPic, getUsers, updateUserInfo, allUsers, assignDriver, removeDriver, oneUser, filterUsers, deleteUser, findUser }
