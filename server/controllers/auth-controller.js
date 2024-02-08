@@ -59,8 +59,8 @@ const signIn = asyncHandler(async(req, res) => {
 
         const findUser = await User.findOne({
             $or: [
-                { email: { $regex: new RegExp(email_staffId, 'i') } },
-                { staffId: { $regex: new RegExp(email_staffId, 'i') } }
+                { email: { $regex: new RegExp(email_staffId.trim(), 'i') } },
+                { staffId: { $regex: new RegExp(email_staffId.trim(), 'i') } }
             ]
         })
         if (!findUser) {

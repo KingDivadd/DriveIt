@@ -85,7 +85,7 @@
          ## Required Info
          1. Bearer Token
          2. 1. vehicle_id, 2. issues. such as ["Poor braking system", "Vehicle due for service", "Bad suspension"]. 3. solutions. such as ["I replaced the front wheels braking pads"]. 4. cost
-      2. Get all maintenance log [GET request] => /api/maint-log/all-maint-log
+      2. Get all maintenance log [POST request] => /api/maint-log/all-maint-log
          ## Required Info
          1. Bearer Token
          2. 1. start_date 2. end_date
@@ -101,7 +101,7 @@
          # Required Info
          1. Bearer Token
          2. 1. planMaintLog id, 2. services: [], 3. concersns: [], 4. proposedDate: YYYY-MM-DD
-      6. Get all planned maintenance [GET request] => /api/maint-log/all-planned-maint
+      6. Get all planned maintenance [POST request] => /api/maint-log/all-planned-maint
          # Required Info
          1. Bearer Token
          2. 1. start_date: YYYY-MM-DD, 2. end_date: YYYY-MM-DD (when neighther is provided, all logs are fetched.)
