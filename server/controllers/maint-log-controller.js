@@ -48,7 +48,6 @@ const planMaint = asyncHandler(async(req, res) => {
     req.body.plannedBy = req.info.id.id
 
     const maint_id = await PlanMaint.find({ vehicle: vehicle })
-    console.log(maint_id)
     let maint_id_box = []
     if (maint_id.length) {
         maint_id.forEach((data, ind) => {
@@ -57,7 +56,6 @@ const planMaint = asyncHandler(async(req, res) => {
             let newId = split_id[split_id.length - 1]
             maint_id_box.push(Number(newId.replace(/,/g, '')))
         });
-        console.log(maint_id_box)
 
         latest_maint_id = Math.max(...maint_id_box)
         let maint_idd = latest_maint_id + 1
@@ -112,6 +110,36 @@ const editPlannedMaint = asyncHandler(async(req, res) => {
     return res.status(200).json({ msg: `Planned Maintenance log updated successfully`, updatedPlanMaint: updatePlanMaint })
 })
 
+const updatePlannedMaintStatus = asyncHandler(async(req, res) => {
+    const { maint_id, status } = req.body
+    if (!maint_id) {
+        return res.status(500).json({ err: `Please provide the maintenance log id.` })
+    }
+    if (!status || status.trim() === "") {
+        return res.status(500).json({ err: `Please select current vehicle maintenance status.` })
+    }
+    const logExist = await PlanMaint.findOne({ _id: maint_id })
+    if (!logExist) {
+        return res.status(404).json({ err: `Maintenance log not found. Contact support.` })
+    }
+    if (req.info.id.role !== 'maintenance_personnel') {
+        return res.status(401).json({ err: `Only maintenance personnel are authorized to perform such operation.` })
+    }
+
+
+    const updateStatus = await PlanMaint.findOneAndUpdate({ _id: maint_id }, { status: status.trim() }, { new: true, runValidators: true })
+
+    // const user = await User.find({ vehicle: updateStatus.vehicle })
+
+    // await Notification.findOneAndUpdate({ planMaintInfo: updateStatus }, { title: `You've update a vehicle maintenance status`, message: `A vehicle maintenance status has been updated successfully.`, }, { new: true, runValidators: true })
+
+    // await Notification.findOneAndUpdate({ planMaintInfo: updateStatus }, { title: `Updated Planned Maintenance`, message: `A maintenance plan for a vehicle just got updated. Click here to know more`, }, { new: true, runValidators: true })
+
+
+    return res.status(200).json({ msg: `Vehicle maintenance status changed to ${status} successfully`, maintenanceStatus: updateStatus })
+
+})
+
 const allPlannedMaint = asyncHandler(async(req, res) => {
     const { vehicle, start_date, end_date } = req.body
     if (!vehicle) {
@@ -139,7 +167,6 @@ const onePlannedMaint = asyncHandler(async(req, res) => {
     }
     const user = await User.findOne({ _id: req.info.id.id })
     const maintExist = await PlanMaint.findOne({ _id: id, })
-    console.log(user.vehicle, maintExist.vehicle)
     if ((!user.vehicle || String(user.vehicle) !== String(maintExist.vehicle)) && (req.info.id.id !== 'maintenance_personnel' || req.info.id.id !== 'vehicle_coordinator')) {
         return res.status(401).json({ err: `Error... You are not authorized to access maint log!!!` })
     }
@@ -148,6 +175,127 @@ const onePlannedMaint = asyncHandler(async(req, res) => {
         return res.status(404).json({ err: `Selected maintenance log not found or has been deleted.` })
     }
     return res.status(200).json({ msg: `Fetching log...`, maint_log: maintLog })
+})
+
+const addMaintPersonnelFeedback = asyncHandler(async(req, res) => {
+    const { maint_id, issues, repair_done, completion_date, images } = req.body
+
+    if (!maint_id) {
+        return res.status(500).json({ err: `Error... Please select a maintenance log to view related info.` })
+    }
+    if (!issues || !repair_done.length || !completion_date) {
+        return res.status(500).json({ err: `Error... Please fill all fields.` })
+    }
+    if (req.info.id.role !== "maintenance_personnel") {
+        return res.status(401).json({ err: `Only Maintenance Personnel are authorized to perform this operation.` })
+    }
+    const planMaintExist = await PlanMaint.findOne({ _id: maint_id })
+    if (!planMaintExist) {
+        return res.status(404).json({ err: `Maintenance Log not found.` })
+    }
+    // now we can make changes to the personnel feedback,  but first we want to ensure
+    const update = {}
+    if (issues.trim() !== "") {
+        update.issues = issues.trim()
+    }
+    if (repair_done.length) {
+        update.repair_done = repair_done
+    }
+    if (completion_date.trim() !== "") {
+        update.completion_date = completion_date.trim()
+    }
+    if (images.length) {
+        update.images = images
+    }
+
+    const addFeedback = await PlanMaint.findOneAndUpdate({ _id: maint_id }, { personnelFeedback: update }, { new: true, runValidators: true })
+
+    const vehicle_id = addFeedback.vehicle
+
+    const user = await User.find({ vehicle: vehicle_id })
+
+    await Notification.create({ createdBy: req.info.id.id, title: "Maintenance Personnel Feedback", planMaint: addFeedback, message: `${req.info.id.lastName} ${req.info.id.firstName}, a maintenance personnel just addded a feedback to a planned maintenance job`, access: 'admin' })
+
+    await Notification.create({ createdBy: req.info.id.id, title: "Maintenance Personnel Feedback", planMaint: addFeedback, message: `${req.info.id.lastName} ${req.info.id.firstName} just addded a feedback to a planned maintenance job`, access: 'maintenance_personnel' })
+
+    if (user.length && user.includes(req.info.id.id)) {
+        await Notification.create({ createdBy: req.info.id.id, title: "Maintenance Personnel Feedback", planMaint: addFeedback, message: "Maintenance Psersonnel just added a feedback to your planned mainteance job", access: 'vehicle_assignee' })
+    }
+
+    return res.status(200).json({ msg: `Maintenance Personnel feedback added successfully.`, planMaintLog: addFeedback })
+
+})
+
+const editMaintPersonnelFeedback = asyncHandler(async(req, res) => {
+    const { maint_id, issues, repair_done, completion_date, images } = req.body
+
+    if (!maint_id) {
+        return res.status(500).json({ err: `Please select a maint log to edit.` })
+    }
+    if (req.info.id.role !== "maintenance_personnel") {
+        return res.status(401).json({ err: `Only Maintenance Personnel are authorized to perfom this operation.` })
+    }
+    const planMaintExist = await PlanMaint.findOne({ _id: maint_id })
+    if (!planMaintExist) {
+        return res.status(404).json({ err: `Maintenance Log not found.` })
+    }
+
+    // now update log
+
+    const personnelFeedback = {}
+    if (issues.trim() !== "") {
+        personnelFeedback.issues = issues.trim()
+    }
+    if (repair_done.length) {
+        personnelFeedback.repair_done = repair_done
+    }
+    if (completion_date.trim() !== "") {
+        personnelFeedback.completion_date = completion_date.trim()
+    }
+    if (images.length) {
+        personnelFeedback.images = images
+    }
+
+    const updatePersonnelFeedback = await PlanMaint.findOneAndUpdate({ _id: maint_id }, { personnelFeedback: personnelFeedback }, { new: true, runValidators: true })
+        .populate("personnelFeedback")
+
+    await Notification.create({ createdBy: req.info.id.id, title: "Maintenance Feedback updated successfully", planMaintInfo: updatePersonnelFeedback, message: `You've updated the maintenance feedback successfuly`, access: 'maintenance_personnel' })
+
+    return res.status(200).json({ msg: `Maintenance feedback updated successfully`, planMaintLog: updatePersonnelFeedback })
+})
+
+const addVehicleOwnersFeedback = asyncHandler(async(req, res) => {
+    const { maint_id, rating, feedback } = req.body
+
+    if (!maint_id) {
+        return res.status(500).json({ err: `Please select a maintenance log.` })
+    }
+    const planMaintExist = await PlanMaint.findOne({ _id: maint_id })
+    if (!planMaintExist) {
+        return res.status(404).json({ err: `Maintenance Log not found.` })
+    }
+    if (!rating || !feedback) {
+        return res.status(500).json({ err: `Please fill al fields.` })
+    }
+    // now let ensure only people assigned to the vehicle can write feedback
+    const user = await User.findOne({ _id: req.info.id.id })
+    if (String(user.vehicle) !== String(planMaintExist.vehicle)) {
+        return res.status(401).json({ err: `Only users assigned to vehicle can add feedback.` })
+    }
+    // now let add
+    const plannersFeedback = {}
+    if (rating.trim() !== '') {
+        plannersFeedback.rating = rating.trim()
+    }
+    if (feedback.trim() !== '') {
+        plannersFeedback.feedback = feedback.trim()
+    }
+
+    const newFeedback = await PlanMaint.findOneAndUpdate({ _id: maint_id }, { plannersFeedback: plannersFeedback }, { new: true, runValidators: true })
+
+    return res.status(200).json({ msg: `You've succcessfully added your feedback.`, maintLog: newFeedback })
+
+
 })
 
 const allVehicleMaintLog = asyncHandler(async(req, res) => {
@@ -253,6 +401,4 @@ const editVehicleMaintLog = asyncHandler(async(req, res) => {
 })
 
 
-
-
-module.exports = { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog, planMaint, editPlannedMaint, allPlannedMaint, onePlannedMaint }
+module.exports = { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog, planMaint, editPlannedMaint, allPlannedMaint, onePlannedMaint, addMaintPersonnelFeedback, editMaintPersonnelFeedback, addVehicleOwnersFeedback, updatePlannedMaintStatus }
