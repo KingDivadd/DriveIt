@@ -12,7 +12,7 @@ router.route('/edit-planned-maint').patch(tokenDecoder, editPlannedMaint)
 router.route('/update-maint-status').patch(tokenDecoder, updatePlannedMaintStatus)
 router.route('/all-planned-maint').post(tokenDecoder, allPlannedMaint)
 router.route('/all-planned-maint/:id').post(tokenDecoder, onePlannedMaint)
-router.route('/maintenacne-feedback').patch(tokenDecoder, addMaintPersonnelFeedback)
+router.route('/maintenance-feedback').patch(tokenDecoder, addMaintPersonnelFeedback)
 router.route('/edit-maintenance-feedback').patch(tokenDecoder, editMaintPersonnelFeedback)
 router.route('/owners-feedback').patch(tokenDecoder, addVehicleOwnersFeedback)
 
