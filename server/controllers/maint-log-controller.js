@@ -334,6 +334,28 @@ const allVehicleMaintLog = asyncHandler(async(req, res) => {
     return res.status(200).json({ nbHit: maint_log.length, maint_logs: maint_log, })
 })
 
+const allMaintLog = asyncHandler(async(req, res) => {
+    const { vehicle_id, start_date, end_date, filter } = req.body
+    if (!vehicle_id || vehicle_id.trim() === '') {
+        return res.status(500).json({ err: `Please provide vehicle id` })
+    }
+    const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
+    if (!vehicleExist) {
+        return res.status(404).json({ err: `Vehicle with provided id, not found.` })
+    }
+    let query = {}
+    query.vehicle = vehicle_id
+    if (start_date && end_date) {
+        query.createdAt = { $gte: start_date, $lte: end_date }
+    }
+    if (filter) {
+        query.filter = filter
+    }
+    // now fetch the maintlog
+    const maintLogs = await Maintenance_Log.find(query)
+    return res.status(200).json({ nbHit: maintLogs.length, allVehicleMaintLog: maintLogs })
+})
+
 const createVehicleMaintLog = asyncHandler(async(req, res) => {
     const { vehicle_id, issues, solutions, cost } = req.body
     if (req.info.id.role !== "maintenance_personnel") {
@@ -401,4 +423,4 @@ const editVehicleMaintLog = asyncHandler(async(req, res) => {
 })
 
 
-module.exports = { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog, planMaint, editPlannedMaint, allPlannedMaint, onePlannedMaint, addMaintPersonnelFeedback, editMaintPersonnelFeedback, addVehicleOwnersFeedback, updatePlannedMaintStatus }
+module.exports = { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog, planMaint, editPlannedMaint, allPlannedMaint, onePlannedMaint, addMaintPersonnelFeedback, editMaintPersonnelFeedback, addVehicleOwnersFeedback, updatePlannedMaintStatus, allMaintLog }
