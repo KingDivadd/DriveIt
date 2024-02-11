@@ -159,6 +159,22 @@ const allPlannedMaint = asyncHandler(async(req, res) => {
 
 })
 
+const allVehiclesPlannedMaint = asyncHandler(async(req, res) => {
+    const { start_date, end_date, status } = req.body
+    const query = {}
+    if (start_date && end_date) {
+        query.updatedAt = { $gte: `${start_date}T00:00:00.000Z`, $lte: `${end_date}T23:59:59.999Z` }
+    }
+    if (status && status.trim() !== "") {
+        query.status = status.trim()
+    }
+
+    const planMaint = await PlanMaint.find(query)
+    return res.status(200).json({ nbHit: planMaint.length, allVehiclesPlannedMaint: planMaint })
+
+})
+
+
 const onePlannedMaint = asyncHandler(async(req, res) => {
     const { id } = req.params
 
@@ -423,4 +439,4 @@ const editVehicleMaintLog = asyncHandler(async(req, res) => {
 })
 
 
-module.exports = { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog, planMaint, editPlannedMaint, allPlannedMaint, onePlannedMaint, addMaintPersonnelFeedback, editMaintPersonnelFeedback, addVehicleOwnersFeedback, updatePlannedMaintStatus, allMaintLog }
+module.exports = { allVehicleMaintLog, createVehicleMaintLog, editVehicleMaintLog, planMaint, editPlannedMaint, allPlannedMaint, onePlannedMaint, addMaintPersonnelFeedback, editMaintPersonnelFeedback, addVehicleOwnersFeedback, updatePlannedMaintStatus, allMaintLog, allVehiclesPlannedMaint }
