@@ -185,6 +185,8 @@ const onePlannedMaint = asyncHandler(async(req, res) => {
     const maintExist = await PlanMaint.findOne({ _id: id, })
 
     const maintLog = await PlanMaint.findOne({ _id: id })
+        .populate("plannedBy")
+        .populate("vehicle")
     if (!maintLog) {
         return res.status(404).json({ err: `Selected maintenance log not found or has been deleted.` })
     }

@@ -12,7 +12,7 @@ const planMaintSchema = new mongoose.Schema({
         feedback: { type: String, trim: true },
     },
     maint_id: { type: String, required: true, trim: true, unique: true },
-    vehicle: { type: mongoose.Types.ObjectId, ref: "Vehicle", required: true },
+    vehicle: { type: mongoose.Types.ObjectId, ref: "Vehicles", required: true },
     services: [{ type: String, required: true, trim: true }],
     concerns: { type: String, required: true, trim: true },
     plannedBy: { type: mongoose.Types.ObjectId, ref: "User", required: true },
