@@ -183,9 +183,7 @@ const onePlannedMaint = asyncHandler(async(req, res) => {
     }
     const user = await User.findOne({ _id: req.info.id.id })
     const maintExist = await PlanMaint.findOne({ _id: id, })
-    if ((!user.vehicle || String(user.vehicle) !== String(maintExist.vehicle)) && (req.info.id.id !== 'maintenance_personnel' || req.info.id.id !== 'vehicle_coordinator')) {
-        return res.status(401).json({ err: `Error... You are not authorized to access maint log!!!` })
-    }
+
     const maintLog = await PlanMaint.findOne({ _id: id })
     if (!maintLog) {
         return res.status(404).json({ err: `Selected maintenance log not found or has been deleted.` })
