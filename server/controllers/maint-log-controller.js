@@ -202,9 +202,7 @@ const addMaintPersonnelFeedback = asyncHandler(async(req, res) => {
     if (!issues || !repair_done.length || !completion_date) {
         return res.status(500).json({ err: `Error... Please fill all fields.` })
     }
-    if (req.info.id.role !== "maintenance_personnel") {
-        return res.status(401).json({ err: `Only Maintenance Personnel are authorized to perform this operation.` })
-    }
+
     const planMaintExist = await PlanMaint.findOne({ _id: maint_id })
     if (!planMaintExist) {
         return res.status(404).json({ err: `Maintenance Log not found.` })
