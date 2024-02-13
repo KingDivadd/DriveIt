@@ -17,7 +17,7 @@ const vehicleSchema = new mongoose.Schema({
     assigned_to: [{ type: mongoose.Types.ObjectId, ref: "User" }],
     added_by: { type: mongoose.Types.ObjectId, ref: "User" },
     current_state: [{ type: String, trim: true }],
-    vehicle_type: { type: String, enum: ['bus', 'car', 'pickup'], default: "car" },
+    vehicle_type: { type: String, enum: ['bus', 'car', 'suv', 'pickup'], default: "car" },
     department: [{ type: String, enum: ['SEET', 'SAAT', 'SEMS', 'SOS', 'SHIT'] }],
     maint_logs: [{ type: mongoose.Types.ObjectId, ref: "Maintenance_Log" }],
     planned_maint: [{ type: mongoose.Types.ObjectId, ref: "plannedMaint" }],
