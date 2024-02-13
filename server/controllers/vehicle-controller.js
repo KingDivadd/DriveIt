@@ -57,6 +57,7 @@ const userVehicle = asyncHandler(async(req, res) => {
         const { vehicle_id } = req.body
         if (vehicle_id) {
             const vehicleExist = await Vehicle.findOne({ _id: vehicle_id })
+                .populate("maint_logs").populate("planned_maint")
             if (!vehicleExist) {
                 return res.status(404).json({ err: `Vehicle not found!!!` })
             }
