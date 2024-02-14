@@ -37,6 +37,11 @@ const addVehicle = asyncHandler(async(req, res) => {
     const service_mileage = Number(current_mileage) + 5000
     req.body.service_mileage = service_mileage.toLocaleString()
     req.body.current_mileage = Number(current_mileage).toLocaleString()
+    req.engine_no = engine_no.toUpperCase()
+    req.plate_no = plate_no.toUpperCase()
+    req.chasis_no = plate_no.toUpperCase()
+
+
     const newVehicle = await Vehicle.create(req.body)
         // now crate a notification log for this
     await Notification.create({ title: "New Vehicle addition", message: `A new vehicle has been added to the institution's fleet. Click here to view vehicle information`, vehicleInfo: newVehicle._id, createdBy: req.info.id.id, access: 'admin' })
