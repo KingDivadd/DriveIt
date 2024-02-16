@@ -39,9 +39,11 @@ const oneUser = asyncHandler(async(req, res) => {
     let maint_log = [];
     let planned_maint = [];
     let daily_log = [];
-    let dashboard_info = {}
+    let dashboard_info = {}; // this is basically for the vehicle assignee and driver
+    let admin_dashboard_info = {} // for the admin
+    let maint_dashboard_info = {} // for the maintenance personnel
 
-    if (user.role !== "driver") {
+    if (user.role === "vehicle_assignee") {
         user_vehicle = await Vehicle.findOne({ assigned_to: { $in: [user._id] } })
         if (!user_vehicle || user_vehicle === null) {
             user_vehicle = { _id: 0, msg: `Unfortunately, no Vehicle has been assigned to user yet!!!` };
@@ -170,6 +172,60 @@ const oneUser = asyncHandler(async(req, res) => {
 
     }
 
+    if (user.role === "vehicle_coordinator") {
+        let all_avail_vehicles = await Vehicle.find({})
+        let assigned_vehicles_box = []
+        if (all_avail_vehicles.length) {
+            admin_dashboard_info.total_avail_vehicles = all_avail_vehicles.length
+            all_avail_vehicles.forEach((data, ind) => {
+                console.log(data.assigned_to)
+                if (data.assigned_to.length !== 0) {
+                    assigned_vehicles_box.push(data)
+                }
+            });
+            admin_dashboard_info.total_assigned_vehicles = assigned_vehicles_box.length
+        } else {
+            admin_dashboard_info.total_assigned_vehicles = 0
+        }
+        let drivers = await User.find({ role: 'driver' })
+        let assigned_driver_box = []
+        let unassigned_driver_box = []
+        if (drivers.length) {
+            drivers.forEach((data, ind) => {
+                if (data.vehicle || data.vehicle !== null) {
+                    assigned_driver_box.push(data)
+                } else {
+                    unassigned_driver_box.push(data)
+                }
+            });
+            admin_dashboard_info.total_assigned_driver = assigned_driver_box.length
+            admin_dashboard_info.total_unassigned_driver = unassigned_driver_box.length
+        } else {
+            admin_dashboard_info.total_assigned_driver = 0
+            admin_dashboard_info.total_unassigned_driver = 0
+        }
+        let assignee = await User.find({})
+        let assignee_box = []
+        if (assignee.length) {
+            assignee.forEach((data, ind) => {
+                if (data.role !== "driver" && (data.vehicle || data.vehicle !== null)) {
+                    assignee_box.push(data)
+                }
+            });
+            admin_dashboard_info.total_vehicle_assignee = assignee_box.length
+        } else {
+            admin_dashboard_info.total_vehicle_assignee = 0
+        }
+        // in cases where the admin is assigned a vehicle and also have a ddriver, relevant info should be included leter perharps.
+
+
+
+        return res.status(200).json({ loggedInUser: user, admin_dashboard: admin_dashboard_info })
+    }
+
+    if (user.role === "maintenance_personnel") {}
+
+    // end of the one user controller
 })
 
 const findUser = asyncHandler(async(req, res) => {
