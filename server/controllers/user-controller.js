@@ -223,7 +223,7 @@ const oneUser = asyncHandler(async(req, res) => {
     }
 
     if (user.role === "maintenance_personnel") {
-        return res.status(200).json({ 'fetching maint infor' })
+        return res.status(200).json({ msg: 'fetching maint infor' })
     }
 
     // end of the one user controller
