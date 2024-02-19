@@ -223,7 +223,14 @@ const oneUser = asyncHandler(async(req, res) => {
     }
 
     if (user.role === "maintenance_personnel") {
-        return res.status(200).json({ msg: 'fetching maint infor' })
+
+
+        // service provided
+        // Pending requests
+        // Completed requests
+        // Avg Response time
+
+        return res.status(200).json({ loggedInUser: user, })
     }
 
     // end of the one user controller
