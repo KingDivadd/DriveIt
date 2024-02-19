@@ -166,7 +166,6 @@ const oneUser = asyncHandler(async(req, res) => {
             dashboard_info.next_maint_date = "Nil"
 
         }
-        console.log(dashboard_info)
 
         return res.status(200).json({ loggedInUser: user, vehicle_assignee: vehicle_owner, assigned_driver: user, dashboard: dashboard_info, user_vehicle: user_vehicle, maint_log: maint_log, planned_maint: planned_maint, daily_logs: daily_log })
 
@@ -178,7 +177,6 @@ const oneUser = asyncHandler(async(req, res) => {
         if (all_avail_vehicles.length) {
             admin_dashboard_info.total_avail_vehicles = all_avail_vehicles.length
             all_avail_vehicles.forEach((data, ind) => {
-                console.log(data.assigned_to)
                 if (data.assigned_to.length !== 0) {
                     assigned_vehicles_box.push(data)
                 }
@@ -223,14 +221,33 @@ const oneUser = asyncHandler(async(req, res) => {
     }
 
     if (user.role === "maintenance_personnel") {
+        const maint_id = user._id
+
+        const maint_dash_info = {}
+        maint_dash_info.total_services_provided = 0 // from planned maint and maint log
+        maint_dash_info.total_pending_requests = 0 // from planned maint
+        maint_dash_info.total_completed_request = 0 // from planned maint
+        maint_dash_info.next_planned_maint = 0 // from planned maint
+
+        const pendingMaint = await PlannedMaint.find({ status: 'pending' })
+        maint_dash_info.total_pending_requests = pendingMaint.length
+
+        const completedMaint = await PlannedMaint.find({ status: 'completed' })
+        maint_dash_info.total_completed_request = completedMaint.length
+
+        const total_services_provided = 0
+        const maintLog = await MaintLog.find({})
+        const planMaint = await PlannedMaint.find({ status: { $ne: 'pending' } })
+
+        maint_dash_info.total_services_provided = maintLog.length + planMaint.length
 
 
         // service provided
-        // Pending requests
-        // Completed requests
+        // Pending Maint requests
+        // Completed maint requests
         // Avg Response time
 
-        return res.status(200).json({ loggedInUser: user, })
+        return res.status(200).json({ loggedInUser: user, maint_dashboard: maint_dash_info })
     }
 
     // end of the one user controller
