@@ -219,11 +219,12 @@ const oneUser = asyncHandler(async(req, res) => {
         // in cases where the admin is assigned a vehicle and also have a ddriver, relevant info should be included leter perharps.
 
 
-
         return res.status(200).json({ loggedInUser: user, admin_dashboard: admin_dashboard_info })
     }
 
-    if (user.role === "maintenance_personnel") {}
+    if (user.role === "maintenance_personnel") {
+        return res.status(200).json({ 'fetching maint infor' })
+    }
 
     // end of the one user controller
 })
